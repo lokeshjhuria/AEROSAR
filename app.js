@@ -77,6 +77,19 @@ async function loadProductionData() {
   return response.json();
 }
 
+function startLiveRefresh() {
+  setInterval(async () => {
+    try {
+      const data = await loadProductionData();
+      render(data);
+    } catch (error) {
+      const notice = document.getElementById('dataNotice');
+      notice.hidden = false;
+      notice.textContent = `LIVE DATA UNAVAILABLE: ${error.message}`;
+    }
+  }, 10000);
+}
+
 async function saveAction(action, details = {}) {
   if (state.demo) return;
   const response = await fetch('/api/mission-actions', {
@@ -132,6 +145,7 @@ async function init() {
     const data = state.demo ? window.AEROSAR_DEMO : await loadProductionData();
     render(data);
     if (state.demo) startDemoClock();
+    else startLiveRefresh();
   } catch (error) {
     const notice = document.getElementById('dataNotice');
     notice.hidden = false;

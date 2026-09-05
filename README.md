@@ -31,6 +31,8 @@ The server reads `.env` automatically. `SUPABASE_DASHBOARD_ENDPOINT` should poin
 
 The repository includes one native Vercel Function per API route under `api/` and requires Node.js 18 or newer. Add the same `SUPABASE_*` variables in Vercel under **Project Settings / Environment Variables**, then redeploy. Do not upload `.env` or commit Supabase keys. After deployment, check `/api/health`; it should return JSON with `ok: true` and all four Supabase flags set to `true`.
 
+Production dashboard data refreshes from Supabase every 10 seconds. This is intentional: Vercel Functions do not provide a persistent WebSocket process. For higher-frequency telemetry, move the realtime socket to a dedicated WebSocket service or use Supabase Realtime with an authenticated browser client.
+
 ## Project files
 
 - `index.html`: command dashboard
