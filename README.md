@@ -19,11 +19,12 @@ Copy `.env.example` to `.env` and provide values through your local environment.
 ```powershell
 $env:SUPABASE_URL="https://your-project.supabase.co"
 $env:SUPABASE_ANON_KEY="your-anon-key"
+$env:SUPABASE_DASHBOARD_ENDPOINT="https://your-project.supabase.co/rest/v1/aerosar_dashboard"
 $env:SUPABASE_REPORTS_ENDPOINT="https://your-project.supabase.co/rest/v1/sos_rescue_reports"
 npm run dev
 ```
 
-The dashboard requests production data from `/api/dashboard`. The SOS report action requests `/api/reports/sos` and reads the report record from the configured Supabase endpoint. Authentication uses `/api/auth/sign-in` and Supabase password authentication.
+The server reads `.env` automatically. `SUPABASE_DASHBOARD_ENDPOINT` should point to a Supabase REST table or view that returns one dashboard JSON record with the fields consumed by `app.js` (`missionName`, `detections`, `tasks`, and telemetry fields). The SOS report endpoint must expose a `mission_id` column. Enable Row Level Security policies appropriate for the anon key, or use a server-side protected integration for private data. Authentication uses `/api/auth/sign-in` and Supabase password authentication.
 
 ## Project files
 

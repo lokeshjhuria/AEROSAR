@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -20,38 +22,71 @@ function sendJson(response, status, body, headers = {}) {
   response.end(JSON.stringify(body));
 }
 
+function supabaseConfig() {
+  return {
+    url: process.env.SUPABASE_URL?.replace(/\/$/, ''),
+    anonKey: process.env.SUPABASE_ANON_KEY
+  };
+}
+
+function supabaseHeaders(anonKey, extra = {}) {
+  return { apikey: anonKey, Authorization: `Bearer ${anonKey}`, ...extra };
+}
+
+async function readJson(request) {
+  let rawBody = '';
+  for await (const chunk of request) rawBody += chunk;
+  return JSON.parse(rawBody || '{}');
+}
+
+async function handleDashboard(request, response) {
+  const { anonKey } = supabaseConfig();
+  if (!process.env.SUPABASE_DASHBOARD_ENDPOINT || !anonKey) {
+    sendJson(response, 503, { error: 'Dashboard is not configured. Set SUPABASE_DASHBOARD_ENDPOINT and Supabase credentials.' });
+    return;
+  }
+
+  const supabaseResponse = await fetch(process.env.SUPABASE_DASHBOARD_ENDPOINT, {
+    headers: supabaseHeaders(anonKey, { Accept: 'application/json' })
+  });
+  const result = await supabaseResponse.json();
+  if (!supabaseResponse.ok) {
+    sendJson(response, supabaseResponse.status, { error: 'Supabase could not return dashboard data.' });
+    return;
+  }
+  sendJson(response, 200, Array.isArray(result) ? result[0] || {} : result);
+}
+
 async function handleSignIn(request, response) {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+  const { url, anonKey } = supabaseConfig();
+  if (!url || !anonKey) {
     sendJson(response, 503, { error: 'Authentication is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.' });
     return;
   }
 
-  let rawBody = '';
-  request.on('data', (chunk) => { rawBody += chunk; });
-  request.on('end', async () => {
-    try {
-      const credentials = JSON.parse(rawBody);
-      const supabaseResponse = await fetch(`${process.env.SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-        method: 'POST',
-        headers: { apikey: process.env.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: credentials.email, password: credentials.password })
-      });
-      const result = await supabaseResponse.json();
+  try {
+    const credentials = await readJson(request);
+    const supabaseResponse = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: supabaseHeaders(anonKey, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ email: credentials.email, password: credentials.password })
+    });
+    const result = await supabaseResponse.json();
 
-      if (!supabaseResponse.ok) {
-        sendJson(response, 401, { error: result.error_description || result.msg || 'Invalid operator credentials.' });
-        return;
-      }
-
-      sendJson(response, 200, { authenticated: true }, { 'Set-Cookie': `aerosar_access_token=${result.access_token}; HttpOnly; SameSite=Lax; Path=/` });
-    } catch {
-      sendJson(response, 400, { error: 'Sign-in request could not be processed.' });
+    if (!supabaseResponse.ok) {
+      sendJson(response, 401, { error: result.error_description || result.msg || 'Invalid operator credentials.' });
+      return;
     }
-  });
+
+    sendJson(response, 200, { authenticated: true }, { 'Set-Cookie': `aerosar_access_token=${result.access_token}; HttpOnly; SameSite=Lax; Path=/` });
+  } catch {
+    sendJson(response, 400, { error: 'Sign-in request could not be processed.' });
+  }
 }
 
 async function handleReport(request, response) {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY || !process.env.SUPABASE_REPORTS_ENDPOINT) {
+  const { anonKey } = supabaseConfig();
+  if (!process.env.SUPABASE_REPORTS_ENDPOINT || !anonKey) {
     sendJson(response, 503, { error: 'SOS reports are not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_REPORTS_ENDPOINT.' });
     return;
   }
@@ -64,7 +99,7 @@ async function handleReport(request, response) {
 
   const reportUrl = new URL(process.env.SUPABASE_REPORTS_ENDPOINT);
   reportUrl.searchParams.set('mission_id', `eq.${missionId}`);
-  const supabaseResponse = await fetch(reportUrl, { headers: { apikey: process.env.SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}` } });
+  const supabaseResponse = await fetch(reportUrl, { headers: supabaseHeaders(anonKey, { Accept: 'application/json' }) });
   const result = await supabaseResponse.json();
   if (!supabaseResponse.ok) {
     sendJson(response, supabaseResponse.status, { error: 'Supabase could not return the mission report.' });
@@ -74,6 +109,10 @@ async function handleReport(request, response) {
 }
 
 const server = http.createServer((request, response) => {
+  if (request.method === 'GET' && request.url === '/api/dashboard') {
+    handleDashboard(request, response).catch(() => sendJson(response, 500, { error: 'Dashboard service error.' }));
+    return;
+  }
   if (request.method === 'POST' && request.url === '/api/auth/sign-in') {
     handleSignIn(request, response).catch(() => sendJson(response, 500, { error: 'Authentication service error.' }));
     return;
