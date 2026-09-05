@@ -29,7 +29,7 @@ The server reads `.env` automatically. `SUPABASE_DASHBOARD_ENDPOINT` should poin
 
 ## Deploy to Vercel
 
-The repository includes `api/[...path].js` for Vercel Functions. Add the same `SUPABASE_*` variables in Vercel under **Project Settings / Environment Variables**, then redeploy. Do not upload `.env` or commit Supabase keys. After deployment, check `/api/health`; it should return JSON with `ok: true` and all four Supabase flags set to `true`.
+The repository includes `api/[...path].js` for Vercel Functions and requires Node.js 18 or newer. Add the same `SUPABASE_*` variables in Vercel under **Project Settings / Environment Variables**, then redeploy. Do not upload `.env` or commit Supabase keys. After deployment, check `/api/health`; it should return JSON with `ok: true` and all four Supabase flags set to `true`.
 
 ## Project files
 
