@@ -129,6 +129,7 @@ async function handleSignIn(request, response) {
 
 async function handleReport(request, response) {
   const { anonKey } = supabaseConfig();
+  const accessToken = requestAccessToken(request);
   if (!process.env.SUPABASE_REPORTS_ENDPOINT || !anonKey) {
     sendJson(response, 503, { error: 'SOS reports are not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_REPORTS_ENDPOINT.' });
     return;
@@ -142,7 +143,7 @@ async function handleReport(request, response) {
 
   const reportUrl = new URL(process.env.SUPABASE_REPORTS_ENDPOINT);
   reportUrl.searchParams.set('mission_id', `eq.${missionId}`);
-  const supabaseResponse = await fetch(reportUrl, { headers: supabaseHeaders(anonKey, { Accept: 'application/json' }) });
+  const supabaseResponse = await fetch(reportUrl, { headers: supabaseHeaders(anonKey, { Accept: 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) }) });
   const result = await supabaseResponse.json();
   if (!supabaseResponse.ok) {
     sendJson(response, supabaseResponse.status, { error: 'Supabase could not return the mission report.' });
