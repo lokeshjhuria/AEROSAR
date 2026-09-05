@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0c1116">
+  <title>AEROSAR | Emergency Response Command</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="command-header">
+      <a class="brand" href="#top" aria-label="AEROSAR command center">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong data-bind="platformName">AEROSAR</strong><small>SEARCH &amp; RESCUE / COMMAND</small></span>
+      </a>
+      <div class="header-readouts" aria-label="Live command status">
+        <div class="readout"><span class="eyebrow">MISSION</span><strong data-bind="missionName">--</strong></div>
+        <div class="readout"><span class="eyebrow">DRONE</span><strong><i class="status-dot" data-status="drone"></i><span data-bind="droneStatus">--</span></strong></div>
+        <div class="readout"><span class="eyebrow">LINK</span><strong><i class="status-dot" data-status="connection"></i><span data-bind="connectionStatus">--</span></strong></div>
+        <div class="readout"><span class="eyebrow">AI CORE</span><strong><i class="status-dot" data-status="ai"></i><span data-bind="aiStatus">--</span></strong></div>
+      </div>
+      <div class="operator-block"><span class="avatar" data-bind="operatorInitials">--</span><span><b data-bind="operatorName">--</b><small>OPERATOR</small></span><a class="icon-button" href="auth.html" aria-label="Open operator sign in">↗</a></div>
+    </header>
+
+    <main id="top" class="dashboard">
+      <section class="mission-strip">
+        <div><span class="eyebrow accent-label">ACTIVE OPERATION</span><h1 data-bind="missionName">--</h1><p data-bind="missionLocation">Awaiting mission data</p></div>
+        <div class="mission-clock"><span class="eyebrow">ELAPSED TIME</span><strong data-bind="missionTimer">--:--:--</strong><span class="pulse-label"><i class="status-dot live"></i><span data-bind="missionPhase">--</span></span></div>
+        <div class="strip-actions"><button class="report-button" id="reportButton"><span>▣</span> GENERATE SOS RESCUE REPORT</button><button class="control-button" id="pauseButton"><span class="pause-icon">Ⅱ</span> <span data-bind="missionAction">PAUSE MISSION</span></button><button class="square-button" aria-label="More mission actions">⋮</button></div>
+      </section>
+
+      <section class="field-imagery" aria-label="Field imagery feed"><div class="field-imagery-heading"><span class="eyebrow">FIELD IMAGERY</span><strong>Visual response context</strong></div><figure><img src="https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=720&q=82" alt="Flood response area viewed from above"><figcaption>FLOOD / AERIAL</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1523867574998-1a336b6ded04?auto=format&fit=crop&w=720&q=82" alt="Fire response activity in the field"><figcaption>FIRE / RESPONSE</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=720&q=82" alt="Drone reconnaissance in the field"><figcaption>DRONE / RECON</figcaption></figure></section>
+
+      <div id="dataNotice" class="data-notice" hidden></div>
+      <section class="dashboard-grid" aria-label="Mission overview">
+        <article class="panel map-panel">
+          <div class="panel-heading"><div><span class="eyebrow">OPERATIONS MAP</span><h2>Live search area</h2></div><span class="live-chip"><i class="status-dot live"></i> <span data-bind="mapMode">--</span></span></div>
+          <div class="map-canvas" id="mapCanvas"><div class="map-grid"></div><div class="map-river"></div><div id="mapSectors"></div><div class="map-route route-one"></div><div class="map-route route-two"></div><div class="drone-pin" id="dronePin"><span class="pin-ring"></span><span class="pin-core"></span><b data-bind="droneId">--</b></div><div class="target-pin target-one"><span>1</span></div><div class="target-pin target-two"><span>2</span></div><div class="map-scale">N<br><span>↑</span><small>500 M</small></div><div class="map-coordinates" data-bind="coordinates">--</div></div>
+          <div class="map-footer"><span><i class="legend-line drone-line"></i> DRONE PATH</span><span><i class="legend-dot target-legend"></i> AI DETECTION</span><span><i class="legend-dash"></i> SEARCH BOUNDARY</span><button class="text-button">EXPAND MAP <span>↗</span></button></div>
+        </article>
+
+        <article class="panel detection-panel">
+          <div class="panel-heading"><div><span class="eyebrow">AI DETECTIONS</span><h2>Priority signals</h2></div><span class="count-badge" data-bind="detectionCount">0</span></div>
+          <div class="detection-list" id="detectionList"></div>
+          <div class="panel-footer"><button class="text-button">VIEW ALL DETECTIONS <span>→</span></button><span class="muted" data-bind="lastInference">--</span></div>
+        </article>
+
+        <article class="panel vitals-panel">
+          <div class="panel-heading"><div><span class="eyebrow">FLIGHT TELEMETRY</span><h2>DR-01 / <span data-bind="droneModel">--</span></h2></div><span class="signal-bars" aria-label="Signal strength"><i></i><i></i><i></i><i></i><i></i></span></div>
+          <div class="vitals-grid"><div class="vital"><span class="vital-icon battery">▰</span><span class="eyebrow">BATTERY</span><strong data-bind="battery">--</strong><small data-bind="batteryTime">--</small></div><div class="vital"><span class="vital-icon altitude">↕</span><span class="eyebrow">ALTITUDE</span><strong data-bind="altitude">--</strong><small>AGL</small></div><div class="vital"><span class="vital-icon speed">⌁</span><span class="eyebrow">GROUND SPEED</span><strong data-bind="speed">--</strong><small>ACTIVE</small></div><div class="vital"><span class="vital-icon temp">°</span><span class="eyebrow">AIR TEMP</span><strong data-bind="temperature">--</strong><small data-bind="weather">--</small></div></div>
+          <div class="telemetry-footer"><span>FLIGHT TIME <b data-bind="flightTime">--</b></span><span>GPS <b data-bind="gpsStatus">--</b></span><span>HEADING <b data-bind="heading">--</b></span></div>
+        </article>
+
+        <article class="panel response-panel">
+          <div class="panel-heading"><div><span class="eyebrow">RESPONSE QUEUE</span><h2>Team actions</h2></div><span class="count-badge neutral" data-bind="taskCount">0</span></div>
+          <div class="task-list" id="taskList"></div>
+          <div class="panel-footer"><button class="text-button" id="acknowledgeButton">ACKNOWLEDGE ALL <span>✓</span></button><span class="muted" data-bind="lastSync">--</span></div>
+        </article>
+      </section>
+    </main>
+    <footer class="system-footer"><span><i class="status-dot live"></i> SYSTEM OPERATIONAL</span><span>DATA SOURCE: <b data-bind="dataSource">--</b></span><span>LAST SYNC <b data-bind="lastSyncFooter">--</b></span><span class="footer-id" data-bind="missionId">--</span></footer>
+  </div>
+  <div class="report-modal" id="reportModal" hidden><div class="report-sheet" role="dialog" aria-modal="true" aria-labelledby="reportTitle"><div class="report-header"><div><span class="eyebrow accent-label">MISSION RECORD / SOS</span><h2 id="reportTitle">Rescue mission report</h2><p id="reportSubtitle">Awaiting report data</p></div><button class="report-close" id="reportClose" aria-label="Close report">×</button></div><div id="reportStatus" class="report-status" hidden></div><div id="reportContent" class="report-content"></div></div></div>
+  <script src="demo-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
