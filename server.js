@@ -209,6 +209,17 @@ const handler = (request, response) => {
   const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
   const apiPath = routePath.startsWith('/api/') ? routePath.slice(4) : routePath;
 
+  if (request.method === 'GET' && apiPath === '/health') {
+    sendJson(response, 200, {
+      ok: true,
+      supabase: Boolean(supabaseConfig().url && supabaseConfig().anonKey),
+      dashboard: Boolean(process.env.SUPABASE_DASHBOARD_ENDPOINT),
+      reports: Boolean(process.env.SUPABASE_REPORTS_ENDPOINT),
+      actions: Boolean(process.env.SUPABASE_ACTIONS_ENDPOINT)
+    });
+    return;
+  }
+
   if (request.method === 'GET' && apiPath === '/dashboard') {
     handleDashboard(request, response).catch(() => sendJson(response, 500, { error: 'Dashboard service error.' }));
     return;
