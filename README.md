@@ -27,6 +27,10 @@ npm run dev
 
 The server reads `.env` automatically. `SUPABASE_DASHBOARD_ENDPOINT` should point to a Supabase REST table or view that returns one dashboard JSON record with the fields consumed by `app.js` (`missionName`, `detections`, `tasks`, and telemetry fields). The SOS report endpoint must expose a `mission_id` column. `SUPABASE_ACTIONS_ENDPOINT` should point to the `mission_actions` table created by `supabase-schema.sql`. Enable Row Level Security policies appropriate for the anon key, or use a server-side protected integration for private data. Authentication uses `/api/auth/sign-in` and Supabase password authentication; saved mission actions are associated with the authenticated Supabase user.
 
+## Deploy to Vercel
+
+The repository includes `api/index.js` and `vercel.json` for Vercel Functions. Add the same `SUPABASE_*` variables in Vercel under **Project Settings / Environment Variables**, then redeploy. Do not upload `.env` or commit Supabase keys.
+
 ## Project files
 
 - `index.html`: command dashboard
