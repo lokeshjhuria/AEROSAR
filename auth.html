@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0c1114">
+  <title>AEROSAR | Operator Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-visual" aria-label="Search and rescue operations imagery">
+      <div class="visual-scrim"></div>
+      <a class="brand" href="index.html" aria-label="Return to AEROSAR command center">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong>AEROSAR</strong><small>SEARCH &amp; RESCUE / COMMAND</small></span>
+      </a>
+      <div class="visual-caption"><span class="eyebrow">FIELD OPERATIONS PLATFORM</span><h1>Eyes on the horizon.<br><em>Teams in motion.</em></h1><p>Secure access for the people coordinating the next response.</p></div>
+      <div class="visual-foot"><span>PHOTO / FIELD OPERATIONS</span><span class="visual-rule"></span><span>01 / 02</span></div>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-panel-top"><span class="eyebrow">OPERATOR ACCESS</span><a href="index.html">BACK TO COMMAND <span>↗</span></a></div>
+      <div class="auth-form-wrap">
+        <span class="eyebrow accent-label">WELCOME BACK</span>
+        <h2>Sign in to<br><span>your command post.</span></h2>
+        <p class="form-intro">Use your authorized operator credentials to continue.</p>
+        <form id="signInForm" novalidate>
+          <label for="operatorEmail">Operator email</label>
+          <input id="operatorEmail" name="email" type="email" autocomplete="email" placeholder="operator@response.team" required>
+          <label for="operatorPassword">Access key</label>
+          <div class="password-field"><input id="operatorPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter access key" required><button type="button" id="togglePassword" aria-label="Show access key">SHOW</button></div>
+          <div class="form-options"><label class="check-option"><input type="checkbox" name="remember"><span>Remember this station</span></label><a href="#recovery">Recover access</a></div>
+          <button class="submit-button" type="submit">ENTER COMMAND <span>→</span></button>
+          <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="auth-panel-foot"><div class="mini-image" aria-hidden="true"></div><p>Protected operational access<br><span>Sessions are secured by your configured identity service.</span></p></div>
+    </section>
+  </main>
+  <script src="auth.js"></script>
+</body>
+</html>
