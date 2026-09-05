@@ -67,6 +67,11 @@ function render(data) {
 }
 
 async function loadProductionData() {
+  const sessionResponse = await fetch('/api/auth/session', { headers: { Accept: 'application/json' } });
+  if (!sessionResponse.ok) {
+    window.location.replace('auth.html');
+    throw new Error('Your operator session is required.');
+  }
   const response = await fetch('/api/dashboard', { headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error(`Dashboard API returned ${response.status}`);
   return response.json();

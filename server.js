@@ -127,6 +127,24 @@ async function handleSignIn(request, response) {
   }
 }
 
+async function handleSession(request, response) {
+  const { url, anonKey } = supabaseConfig();
+  const accessToken = requestAccessToken(request);
+  if (!url || !anonKey || !accessToken) {
+    sendJson(response, 401, { authenticated: false });
+    return;
+  }
+
+  const supabaseResponse = await fetch(`${url}/auth/v1/user`, {
+    headers: supabaseHeaders(anonKey, { Authorization: `Bearer ${accessToken}` })
+  });
+  if (!supabaseResponse.ok) {
+    sendJson(response, 401, { authenticated: false });
+    return;
+  }
+  sendJson(response, 200, { authenticated: true });
+}
+
 async function handleReport(request, response) {
   const { anonKey } = supabaseConfig();
   const accessToken = requestAccessToken(request);
@@ -152,20 +170,28 @@ async function handleReport(request, response) {
   sendJson(response, 200, Array.isArray(result) ? result[0] || {} : result);
 }
 
-const server = http.createServer((request, response) => {
-  if (request.method === 'GET' && request.url === '/api/dashboard') {
+const handler = (request, response) => {
+  const requestUrl = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+  const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
+  const apiPath = routePath.startsWith('/api/') ? routePath.slice(4) : routePath;
+
+  if (request.method === 'GET' && apiPath === '/dashboard') {
     handleDashboard(request, response).catch(() => sendJson(response, 500, { error: 'Dashboard service error.' }));
     return;
   }
-  if (request.method === 'POST' && request.url === '/api/mission-actions') {
+  if (request.method === 'POST' && apiPath === '/mission-actions') {
     handleAction(request, response).catch(() => sendJson(response, 500, { error: 'Mission action service error.' }));
     return;
   }
-  if (request.method === 'POST' && request.url === '/api/auth/sign-in') {
+  if (request.method === 'POST' && apiPath === '/auth/sign-in') {
     handleSignIn(request, response).catch(() => sendJson(response, 500, { error: 'Authentication service error.' }));
     return;
   }
-  if (request.method === 'GET' && request.url.startsWith('/api/reports/sos')) {
+  if (request.method === 'GET' && apiPath === '/auth/session') {
+    handleSession(request, response).catch(() => sendJson(response, 401, { authenticated: false }));
+    return;
+  }
+  if (request.method === 'GET' && apiPath === '/reports/sos') {
     handleReport(request, response).catch(() => sendJson(response, 500, { error: 'Report service error.' }));
     return;
   }
@@ -176,7 +202,13 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  const requestPath = decodeURIComponent(request.url.split('?')[0]);
+  const requestPath = decodeURIComponent(requestUrl.pathname);
+  const isDemo = requestUrl.searchParams.get('demo') === 'true';
+  if ((requestPath === '/' || requestPath === '/index.html') && !requestAccessToken(request) && !isDemo) {
+    response.writeHead(302, { Location: '/auth.html' });
+    response.end();
+    return;
+  }
   const relativePath = requestPath === '/' ? '/index.html' : requestPath;
   const filePath = path.resolve(root, `.${relativePath}`);
 
@@ -196,8 +228,12 @@ const server = http.createServer((request, response) => {
     response.writeHead(200, { 'Content-Type': contentTypes[path.extname(filePath)] || 'application/octet-stream' });
     response.end(content);
   });
-});
+};
 
-server.listen(port, () => {
-  console.log(`AEROSAR dev server running at http://localhost:${port}`);
-});
+module.exports = handler;
+
+if (require.main === module) {
+  http.createServer(handler).listen(port, () => {
+    console.log(`AEROSAR dev server running at http://localhost:${port}`);
+  });
+}
