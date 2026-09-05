@@ -16,6 +16,8 @@ Open http://localhost:8000. Use `?demo=true` to run the isolated simulation data
 
 Copy `.env.example` to `.env` and provide values through your local environment. Do not commit `.env` or real credentials.
 
+For registration and sign-in, `SUPABASE_URL` and `SUPABASE_ANON_KEY` are required. Get both from Supabase under **Project Settings / API**. The anon key is intended for browser-facing authentication; never put a service-role key in this file.
+
 ```powershell
 $env:SUPABASE_URL="https://your-project.supabase.co"
 $env:SUPABASE_ANON_KEY="your-anon-key"
