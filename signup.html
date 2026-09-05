@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0c1114">
+  <title>AEROSAR | Create Operator Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-visual" aria-label="Search and rescue operations imagery">
+      <div class="visual-scrim"></div>
+      <a class="brand" href="index.html" aria-label="Return to AEROSAR command center">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong>AEROSAR</strong><small>SEARCH &amp; RESCUE / COMMAND</small></span>
+      </a>
+      <div class="visual-caption"><span class="eyebrow">FIELD OPERATIONS PLATFORM</span><h1>Ready for the<br><em>next response.</em></h1><p>Create a secure operator account to coordinate missions.</p></div>
+    </section>
+    <section class="auth-panel">
+      <div class="auth-panel-top"><span class="eyebrow">OPERATOR ACCESS</span><a href="auth.html">SIGN IN <span>↗</span></a></div>
+      <div class="auth-form-wrap">
+        <span class="eyebrow accent-label">NEW OPERATOR</span>
+        <h2>Create your<br><span>command account.</span></h2>
+        <p class="form-intro">Use an email approved by your response organization.</p>
+        <form id="signUpForm" novalidate>
+          <label for="operatorEmail">Operator email</label>
+          <input id="operatorEmail" name="email" type="email" autocomplete="email" placeholder="operator@response.team" required>
+          <label for="operatorPassword">Access key</label>
+          <input id="operatorPassword" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" minlength="6" required>
+          <label for="operatorPasswordConfirm">Confirm access key</label>
+          <input id="operatorPasswordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" placeholder="Repeat access key" minlength="6" required>
+          <button class="submit-button" type="submit">CREATE ACCOUNT <span>→</span></button>
+          <p class="auth-message" id="signUpMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <div class="auth-panel-foot"><div class="mini-image" aria-hidden="true"></div><p>Protected operational access<br><span>Account security is managed by Supabase Auth.</span></p></div>
+    </section>
+  </main>
+  <script src="signup.js"></script>
+</body>
+</html>

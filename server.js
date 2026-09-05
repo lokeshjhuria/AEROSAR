@@ -127,6 +127,40 @@ async function handleSignIn(request, response) {
   }
 }
 
+async function handleSignUp(request, response) {
+  const { url, anonKey } = supabaseConfig();
+  if (!url || !anonKey) {
+    sendJson(response, 503, { error: 'Registration is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.' });
+    return;
+  }
+
+  try {
+    const credentials = await readJson(request);
+    if (!credentials.email || !credentials.password || credentials.password.length < 6) {
+      sendJson(response, 400, { error: 'Provide an email and a password with at least 6 characters.' });
+      return;
+    }
+
+    const supabaseResponse = await fetch(`${url}/auth/v1/signup`, {
+      method: 'POST',
+      headers: supabaseHeaders(anonKey, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ email: credentials.email, password: credentials.password })
+    });
+    const result = await supabaseResponse.json();
+    if (!supabaseResponse.ok) {
+      sendJson(response, 400, { error: result.msg || result.error_description || 'Account creation failed.' });
+      return;
+    }
+
+    const headers = result.access_token
+      ? { 'Set-Cookie': `aerosar_access_token=${result.access_token}; HttpOnly; SameSite=Lax; Path=/` }
+      : {};
+    sendJson(response, 201, { created: true, authenticated: Boolean(result.access_token), confirmationRequired: !result.access_token }, headers);
+  } catch {
+    sendJson(response, 400, { error: 'Sign-up request could not be processed.' });
+  }
+}
+
 async function handleSession(request, response) {
   const { url, anonKey } = supabaseConfig();
   const accessToken = requestAccessToken(request);
@@ -185,6 +219,10 @@ const handler = (request, response) => {
   }
   if (request.method === 'POST' && apiPath === '/auth/sign-in') {
     handleSignIn(request, response).catch(() => sendJson(response, 500, { error: 'Authentication service error.' }));
+    return;
+  }
+  if (request.method === 'POST' && apiPath === '/auth/sign-up') {
+    handleSignUp(request, response).catch(() => sendJson(response, 500, { error: 'Registration service error.' }));
     return;
   }
   if (request.method === 'GET' && apiPath === '/auth/session') {
