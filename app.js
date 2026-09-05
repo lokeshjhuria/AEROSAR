@@ -72,6 +72,17 @@ async function loadProductionData() {
   return response.json();
 }
 
+async function saveAction(action, details = {}) {
+  if (state.demo) return;
+  const response = await fetch('/api/mission-actions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ mission_id: state.data?.missionId, action, details })
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Mission action could not be saved.');
+}
+
 function startDemoClock() {
   setInterval(() => {
     if (!state.data || state.paused) return;
@@ -86,8 +97,28 @@ function startDemoClock() {
 function setupControls() {
   document.getElementById('reportButton').addEventListener('click', openReport);
   document.getElementById('reportClose').addEventListener('click', () => { document.getElementById('reportModal').hidden = true; });
-  document.getElementById('pauseButton').addEventListener('click', () => { state.paused = !state.paused; bind('missionAction', state.paused ? 'RESUME MISSION' : 'PAUSE MISSION'); document.querySelector('.pulse-label').classList.toggle('is-paused', state.paused); });
-  document.getElementById('acknowledgeButton').addEventListener('click', (event) => { event.currentTarget.textContent = 'ALL ACTIONS ACKNOWLEDGED ✓'; event.currentTarget.classList.add('acknowledged'); });
+  document.getElementById('pauseButton').addEventListener('click', async () => {
+    const nextPaused = !state.paused;
+    try {
+      await saveAction(nextPaused ? 'pause_mission' : 'resume_mission');
+      state.paused = nextPaused;
+      bind('missionAction', state.paused ? 'RESUME MISSION' : 'PAUSE MISSION');
+      document.querySelector('.pulse-label').classList.toggle('is-paused', state.paused);
+    } catch (error) {
+      document.getElementById('dataNotice').hidden = false;
+      document.getElementById('dataNotice').textContent = error.message;
+    }
+  });
+  document.getElementById('acknowledgeButton').addEventListener('click', async (event) => {
+    try {
+      await saveAction('acknowledge_all');
+      event.currentTarget.textContent = 'ALL ACTIONS ACKNOWLEDGED ✓';
+      event.currentTarget.classList.add('acknowledged');
+    } catch (error) {
+      document.getElementById('dataNotice').hidden = false;
+      document.getElementById('dataNotice').textContent = error.message;
+    }
+  });
 }
 
 async function init() {

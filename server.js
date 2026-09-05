@@ -33,6 +33,12 @@ function supabaseHeaders(anonKey, extra = {}) {
   return { apikey: anonKey, Authorization: `Bearer ${anonKey}`, ...extra };
 }
 
+function requestAccessToken(request) {
+  const cookies = request.headers.cookie || '';
+  const token = cookies.split(';').map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith('aerosar_access_token='));
+  return token ? decodeURIComponent(token.slice('aerosar_access_token='.length)) : '';
+}
+
 async function readJson(request) {
   let rawBody = '';
   for await (const chunk of request) rawBody += chunk;
@@ -47,7 +53,7 @@ async function handleDashboard(request, response) {
   }
 
   const supabaseResponse = await fetch(process.env.SUPABASE_DASHBOARD_ENDPOINT, {
-    headers: supabaseHeaders(anonKey, { Accept: 'application/json' })
+    headers: supabaseHeaders(anonKey, { Accept: 'application/json', ...(requestAccessToken(request) ? { Authorization: `Bearer ${requestAccessToken(request)}` } : {}) })
   });
   const result = await supabaseResponse.json();
   if (!supabaseResponse.ok) {
@@ -55,6 +61,43 @@ async function handleDashboard(request, response) {
     return;
   }
   sendJson(response, 200, Array.isArray(result) ? result[0] || {} : result);
+}
+
+async function handleAction(request, response) {
+  const { url, anonKey } = supabaseConfig();
+  const accessToken = requestAccessToken(request);
+  if (!url || !anonKey || !process.env.SUPABASE_ACTIONS_ENDPOINT) {
+    sendJson(response, 503, { error: 'Action storage is not configured. Set Supabase credentials and SUPABASE_ACTIONS_ENDPOINT.' });
+    return;
+  }
+  if (!accessToken) {
+    sendJson(response, 401, { error: 'Sign in before saving mission actions.' });
+    return;
+  }
+
+  const action = await readJson(request);
+  if (!action.mission_id || !action.action) {
+    sendJson(response, 400, { error: 'mission_id and action are required.' });
+    return;
+  }
+
+  const userResponse = await fetch(`${url}/auth/v1/user`, { headers: supabaseHeaders(anonKey, { Authorization: `Bearer ${accessToken}` }) });
+  const user = await userResponse.json();
+  if (!userResponse.ok) {
+    sendJson(response, 401, { error: 'Your Supabase session has expired. Sign in again.' });
+    return;
+  }
+
+  const supabaseResponse = await fetch(process.env.SUPABASE_ACTIONS_ENDPOINT, {
+    method: 'POST',
+    headers: supabaseHeaders(anonKey, { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+    body: JSON.stringify({ mission_id: action.mission_id, action: action.action, details: action.details || {}, operator_id: user.id })
+  });
+  if (!supabaseResponse.ok) {
+    sendJson(response, supabaseResponse.status, { error: 'Supabase could not save the mission action.' });
+    return;
+  }
+  sendJson(response, 201, { saved: true });
 }
 
 async function handleSignIn(request, response) {
@@ -111,6 +154,10 @@ async function handleReport(request, response) {
 const server = http.createServer((request, response) => {
   if (request.method === 'GET' && request.url === '/api/dashboard') {
     handleDashboard(request, response).catch(() => sendJson(response, 500, { error: 'Dashboard service error.' }));
+    return;
+  }
+  if (request.method === 'POST' && request.url === '/api/mission-actions') {
+    handleAction(request, response).catch(() => sendJson(response, 500, { error: 'Mission action service error.' }));
     return;
   }
   if (request.method === 'POST' && request.url === '/api/auth/sign-in') {
