@@ -6,6 +6,7 @@ const path = require('path');
 
 const port = Number(process.env.PORT || 8000);
 const root = process.cwd();
+const demoSessionToken = 'demo-local-session';
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -37,6 +38,10 @@ function requestAccessToken(request) {
   const cookies = request.headers.cookie || '';
   const token = cookies.split(';').map((cookie) => cookie.trim()).find((cookie) => cookie.startsWith('aerosar_access_token='));
   return token ? decodeURIComponent(token.slice('aerosar_access_token='.length)) : '';
+}
+
+function demoCookieHeader() {
+  return { 'Set-Cookie': `aerosar_access_token=${encodeURIComponent(demoSessionToken)}; HttpOnly; SameSite=Lax; Path=/` };
 }
 
 async function readJson(request) {
@@ -103,8 +108,18 @@ async function handleAction(request, response) {
 async function handleSignIn(request, response) {
   const { url, anonKey } = supabaseConfig();
   if (!url || !anonKey) {
-    sendJson(response, 503, { error: 'Authentication is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.' });
-    return;
+    try {
+      const credentials = await readJson(request);
+      if (!credentials.email || !credentials.password || credentials.password.length < 6) {
+        sendJson(response, 400, { error: 'Provide an email and a password with at least 6 characters.' });
+        return;
+      }
+      sendJson(response, 200, { authenticated: true, demoMode: true }, demoCookieHeader());
+      return;
+    } catch {
+      sendJson(response, 400, { error: 'Sign-in request could not be processed.' });
+      return;
+    }
   }
 
   try {
@@ -130,8 +145,18 @@ async function handleSignIn(request, response) {
 async function handleSignUp(request, response) {
   const { url, anonKey } = supabaseConfig();
   if (!url || !anonKey) {
-    sendJson(response, 503, { error: 'Registration is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY.' });
-    return;
+    try {
+      const credentials = await readJson(request);
+      if (!credentials.email || !credentials.password || credentials.password.length < 6) {
+        sendJson(response, 400, { error: 'Provide an email and a password with at least 6 characters.' });
+        return;
+      }
+      sendJson(response, 201, { created: true, authenticated: true, confirmationRequired: false, demoMode: true }, demoCookieHeader());
+      return;
+    } catch {
+      sendJson(response, 400, { error: 'Sign-up request could not be processed.' });
+      return;
+    }
   }
 
   try {
@@ -164,8 +189,8 @@ async function handleSignUp(request, response) {
 async function handleSession(request, response) {
   const { url, anonKey } = supabaseConfig();
   const accessToken = requestAccessToken(request);
-  if (!url || !anonKey || !accessToken) {
-    sendJson(response, 401, { authenticated: false });
+  if (!url || !anonKey) {
+    sendJson(response, accessToken === demoSessionToken ? 200 : 401, { authenticated: accessToken === demoSessionToken, demoMode: true });
     return;
   }
 
