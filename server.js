@@ -281,8 +281,26 @@ const handler = (request, response) => {
 
 module.exports = handler;
 
-if (require.main === module) {
-  http.createServer(handler).listen(port, () => {
-    console.log(`AEROSAR dev server running at http://localhost:${port}`);
+function startServer(portToTry) {
+  const server = http.createServer(handler);
+
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      const nextPort = portToTry + 1;
+      console.warn(`Port ${portToTry} is already in use. Retrying on http://localhost:${nextPort}`);
+      startServer(nextPort);
+      return;
+    }
+
+    console.error('Server failed to start:', error);
+    process.exitCode = 1;
   });
+
+  server.listen(portToTry, () => {
+    console.log(`AEROSAR dev server running at http://localhost:${portToTry}`);
+  });
+}
+
+if (require.main === module) {
+  startServer(port);
 }
