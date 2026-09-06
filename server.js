@@ -60,8 +60,17 @@ function demoCookieHeader() {
 
 async function readJson(request) {
   let rawBody = '';
+  if (!request || typeof request[Symbol.asyncIterator] !== 'function') {
+    return {};
+  }
+
   for await (const chunk of request) rawBody += chunk;
-  return JSON.parse(rawBody || '{}');
+  if (!rawBody.trim()) return {};
+  try {
+    return JSON.parse(rawBody);
+  } catch {
+    throw new Error('Invalid JSON request body.');
+  }
 }
 
 async function handleDashboard(request, response) {
@@ -244,12 +253,19 @@ async function handleReport(request, response) {
 }
 
 const handler = (request, response) => {
-  const requestUrl = new URL(request.url, `http://${request.headers.host || 'localhost'}`);
+  const safeRequest = request || {};
+  const safeResponse = response || {
+    setHeader() {},
+    writeHead() {},
+    end() {},
+    write() {}
+  };
+  const requestUrl = new URL(safeRequest.url || '/', `http://${safeRequest.headers?.host || 'localhost'}`);
   const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
   const apiPath = routePath.startsWith('/api/') ? routePath.slice(4) : routePath;
 
-  if (request.method === 'GET' && apiPath === '/health') {
-    sendJson(response, 200, {
+  if (safeRequest.method === 'GET' && apiPath === '/health') {
+    sendJson(safeResponse, 200, {
       ok: true,
       supabase: Boolean(supabaseConfig().url && supabaseConfig().anonKey),
       dashboard: Boolean(process.env.SUPABASE_DASHBOARD_ENDPOINT),
@@ -259,62 +275,62 @@ const handler = (request, response) => {
     return;
   }
 
-  if (request.method === 'GET' && apiPath === '/dashboard') {
-    handleDashboard(request, response).catch(() => sendJson(response, 500, { error: 'Dashboard service error.' }));
+  if (safeRequest.method === 'GET' && apiPath === '/dashboard') {
+    handleDashboard(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Dashboard service error.' }));
     return;
   }
-  if (request.method === 'POST' && apiPath === '/mission-actions') {
-    handleAction(request, response).catch(() => sendJson(response, 500, { error: 'Mission action service error.' }));
+  if (safeRequest.method === 'POST' && apiPath === '/mission-actions') {
+    handleAction(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Mission action service error.' }));
     return;
   }
-  if (request.method === 'POST' && apiPath === '/auth/sign-in') {
-    handleSignIn(request, response).catch(() => sendJson(response, 500, { error: 'Authentication service error.' }));
+  if (safeRequest.method === 'POST' && apiPath === '/auth/sign-in') {
+    handleSignIn(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Authentication service error.' }));
     return;
   }
-  if (request.method === 'POST' && apiPath === '/auth/sign-up') {
-    handleSignUp(request, response).catch(() => sendJson(response, 500, { error: 'Registration service error.' }));
+  if (safeRequest.method === 'POST' && apiPath === '/auth/sign-up') {
+    handleSignUp(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Registration service error.' }));
     return;
   }
-  if (request.method === 'GET' && apiPath === '/auth/session') {
-    handleSession(request, response).catch(() => sendJson(response, 401, { authenticated: false }));
+  if (safeRequest.method === 'GET' && apiPath === '/auth/session') {
+    handleSession(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 401, { authenticated: false }));
     return;
   }
-  if (request.method === 'GET' && apiPath === '/reports/sos') {
-    handleReport(request, response).catch(() => sendJson(response, 500, { error: 'Report service error.' }));
+  if (safeRequest.method === 'GET' && apiPath === '/reports/sos') {
+    handleReport(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Report service error.' }));
     return;
   }
 
-  if (request.method !== 'GET' && request.method !== 'HEAD') {
-    response.writeHead(405);
-    response.end('Method not allowed');
+  if (safeRequest.method !== 'GET' && safeRequest.method !== 'HEAD') {
+    safeResponse.writeHead(405);
+    safeResponse.end('Method not allowed');
     return;
   }
 
   const requestPath = decodeURIComponent(requestUrl.pathname);
   const isDemo = requestUrl.searchParams.get('demo') === 'true';
-  if ((requestPath === '/' || requestPath === '/index.html') && !requestAccessToken(request) && !isDemo) {
-    response.writeHead(302, { Location: '/auth.html' });
-    response.end();
+  if ((requestPath === '/' || requestPath === '/index.html') && !requestAccessToken(safeRequest) && !isDemo) {
+    safeResponse.writeHead(302, { Location: '/auth.html' });
+    safeResponse.end();
     return;
   }
   const relativePath = requestPath === '/' ? '/index.html' : requestPath;
   const filePath = path.resolve(root, `.${relativePath}`);
 
   if (!filePath.startsWith(root)) {
-    response.writeHead(403);
-    response.end('Forbidden');
+    safeResponse.writeHead(403);
+    safeResponse.end('Forbidden');
     return;
   }
 
   fs.readFile(filePath, (error, content) => {
     if (error) {
-      response.writeHead(error.code === 'ENOENT' ? 404 : 500);
-      response.end(error.code === 'ENOENT' ? 'Not found' : 'Server error');
+      safeResponse.writeHead(error.code === 'ENOENT' ? 404 : 500);
+      safeResponse.end(error.code === 'ENOENT' ? 'Not found' : 'Server error');
       return;
     }
 
-    response.writeHead(200, { 'Content-Type': contentTypes[path.extname(filePath)] || 'application/octet-stream' });
-    response.end(content);
+    safeResponse.writeHead(200, { 'Content-Type': contentTypes[path.extname(filePath)] || 'application/octet-stream' });
+    safeResponse.end(content);
   });
 };
 
