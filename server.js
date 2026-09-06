@@ -23,10 +23,14 @@ function sendJson(response, status, body, headers = {}) {
   response.end(JSON.stringify(body));
 }
 
+function isConfiguredSupabaseValue(value) {
+  return typeof value === 'string' && value.trim() !== '' && !value.includes('your-project.supabase.co') && !value.includes('your-anon-key') && !value.includes('your-');
+}
+
 function supabaseConfig() {
   return {
-    url: process.env.SUPABASE_URL?.replace(/\/$/, ''),
-    anonKey: process.env.SUPABASE_ANON_KEY
+    url: isConfiguredSupabaseValue(process.env.SUPABASE_URL) ? process.env.SUPABASE_URL.replace(/\/$/, '') : '',
+    anonKey: isConfiguredSupabaseValue(process.env.SUPABASE_ANON_KEY) ? process.env.SUPABASE_ANON_KEY : ''
   };
 }
 
