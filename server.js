@@ -27,10 +27,20 @@ function isConfiguredSupabaseValue(value) {
   return typeof value === 'string' && value.trim() !== '' && !value.includes('your-project.supabase.co') && !value.includes('your-anon-key') && !value.includes('your-');
 }
 
+function getEnvValue(...keys) {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
 function supabaseConfig() {
+  const url = getEnvValue('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL');
+  const anonKey = getEnvValue('SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY');
   return {
-    url: isConfiguredSupabaseValue(process.env.SUPABASE_URL) ? process.env.SUPABASE_URL.replace(/\/$/, '') : '',
-    anonKey: isConfiguredSupabaseValue(process.env.SUPABASE_ANON_KEY) ? process.env.SUPABASE_ANON_KEY : ''
+    url: isConfiguredSupabaseValue(url) ? url.replace(/\/$/, '') : '',
+    anonKey: isConfiguredSupabaseValue(anonKey) ? anonKey : ''
   };
 }
 
