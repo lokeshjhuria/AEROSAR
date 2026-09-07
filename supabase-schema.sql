@@ -134,3 +134,6 @@ on public.mission_actions
 for select
 to authenticated
 using (auth.uid() = operator_id);
+
+
+
