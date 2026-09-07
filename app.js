@@ -171,6 +171,8 @@ function render(data) {
   if (Number.isFinite(data.missionTimerSeconds)) bind('missionTimer', new Date(data.missionTimerSeconds * 1000).toISOString().slice(11, 19));
   renderMap(data);
   renderList(data);
+  const mapTitle = document.querySelector('.map-panel h2');
+  if (mapTitle) mapTitle.textContent = (data.mapMode && data.mapMode.toUpperCase() !== 'LIVE FEED') ? `${data.mapMode} search area` : 'Live search area';
   document.querySelector('[data-status="drone"]').className = `status-dot ${data.droneStatus === 'IN FLIGHT' ? 'live' : 'warn'}`;
   document.querySelector('[data-status="connection"]').className = `status-dot ${data.connectionStatus === 'CONNECTED' ? 'live' : 'danger'}`;
   document.querySelector('[data-status="ai"]').className = `status-dot ${data.aiStatus === 'PROCESSING' ? 'live' : 'warn'}`;
@@ -235,9 +237,48 @@ function startDemoClock() {
   }, 1000);
 }
 
+function openDetections() {
+  const modal = document.getElementById('detectionModal');
+  const content = document.getElementById('detectionContent');
+  if (!modal || !content) return;
+
+  const items = state.data?.detections || [];
+  if (!items.length) {
+    content.innerHTML = '<section class="report-section"><span class="eyebrow">STATUS</span><p class="report-empty">No detections are available from the current mission feed.</p></section>';
+    modal.hidden = false;
+    return;
+  }
+
+  content.innerHTML = items.map((item) => `
+    <section class="report-section">
+      <span class="eyebrow">${escapeHtml(item.type || 'DETECTION')}</span>
+      <dl>
+        <dt>Confidence</dt><dd>${valueOrDash(item.confidence)}</dd>
+        <dt>Priority</dt><dd>${valueOrDash(item.priority)}</dd>
+        <dt>Location</dt><dd>${valueOrDash(item.location)}</dd>
+        <dt>Time</dt><dd>${valueOrDash(item.time)}</dd>
+      </dl>
+    </section>
+  `).join('');
+  modal.hidden = false;
+}
+
+function toggleMapExpand() {
+  const mapPanel = document.querySelector('.map-panel');
+  if (!mapPanel) return;
+  mapPanel.classList.toggle('map-panel--expanded');
+  const button = document.getElementById('expandMapButton');
+  if (button) {
+    button.innerHTML = mapPanel.classList.contains('map-panel--expanded') ? 'COLLAPSE MAP <span>↘</span>' : 'EXPAND MAP <span>↗</span>';
+  }
+}
+
 function setupControls() {
   document.getElementById('reportButton').addEventListener('click', openReport);
   document.getElementById('reportClose').addEventListener('click', () => { document.getElementById('reportModal').hidden = true; });
+  document.getElementById('detectionClose').addEventListener('click', () => { document.getElementById('detectionModal').hidden = true; });
+  document.getElementById('viewDetectionsButton').addEventListener('click', openDetections);
+  document.getElementById('expandMapButton').addEventListener('click', toggleMapExpand);
   document.getElementById('pauseButton').addEventListener('click', async () => {
     const nextPaused = !state.paused;
     try {
