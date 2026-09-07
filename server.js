@@ -257,32 +257,43 @@ async function handleDroneCamera(request, response) {
   const cameraFromQuery = requestUrl.searchParams.get('url');
   const cameraUrl = cameraFromQuery || process.env.DRONE_CAMERA_URL || '';
   const fallback = 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=1200&q=80';
+  const remoteUrl = cameraUrl || (requestUrl.searchParams.get('demo') === 'true' ? fallback : '');
+
+  if (!remoteUrl) {
+    if (!response.headersSent) {
+      sendJson(response, 503, { error: 'No drone camera URL is configured. Set DRONE_CAMERA_URL or connect a stream manually.' });
+    }
+    return;
+  }
 
   try {
-    const remoteUrl = cameraUrl || (requestUrl.searchParams.get('demo') === 'true' ? fallback : '');
-    if (!remoteUrl) {
-      sendJson(response, 503, { error: 'No drone camera URL is configured. Set DRONE_CAMERA_URL or connect a stream manually.' });
-      return;
-    }
-
     const streamResponse = await fetch(remoteUrl, {
       headers: { Accept: 'image/jpeg,image/png,image/webp,image/*,multipart/x-mixed-replace;boundary=--jpg' }
     });
 
     if (!streamResponse.ok) {
-      sendJson(response, 502, { error: 'Drone camera stream is unreachable.' });
+      if (!response.headersSent) {
+        sendJson(response, 502, { error: 'Drone camera stream is unreachable.' });
+      }
       return;
     }
 
     const contentType = streamResponse.headers.get('content-type') || 'image/jpeg';
-    response.writeHead(200, {
-      'Content-Type': contentType,
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-      Pragma: 'no-cache',
-      Expires: '0'
-    });
+    if (!response.headersSent) {
+      response.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0'
+      });
+    }
 
     if (streamResponse.body) {
+      streamResponse.body.on('error', () => {
+        if (!response.writableEnded) {
+          response.destroy();
+        }
+      });
       streamResponse.body.pipe(response);
       return;
     }
@@ -290,15 +301,25 @@ async function handleDroneCamera(request, response) {
     const buffer = Buffer.from(await streamResponse.arrayBuffer());
     response.end(buffer);
   } catch {
-    const fallbackResponse = await fetch(fallback);
-    const fallbackBuffer = Buffer.from(await fallbackResponse.arrayBuffer());
-    response.writeHead(200, {
-      'Content-Type': fallbackResponse.headers.get('content-type') || 'image/jpeg',
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-      Pragma: 'no-cache',
-      Expires: '0'
-    });
-    response.end(fallbackBuffer);
+    try {
+      const fallbackResponse = await fetch(fallback);
+      const fallbackBuffer = Buffer.from(await fallbackResponse.arrayBuffer());
+      if (!response.headersSent) {
+        response.writeHead(200, {
+          'Content-Type': fallbackResponse.headers.get('content-type') || 'image/jpeg',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0'
+        });
+      }
+      response.end(fallbackBuffer);
+    } catch {
+      if (!response.headersSent) {
+        sendJson(response, 503, { error: 'Drone camera stream is unavailable.' });
+      } else {
+        response.end();
+      }
+    }
   }
 }
 
