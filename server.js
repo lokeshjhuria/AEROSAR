@@ -7,6 +7,7 @@ const path = require('path');
 const port = Number(process.env.PORT || 8000);
 const root = process.cwd();
 const demoSessionToken = 'demo-local-session';
+const rescueHistoryFile = path.resolve(root, 'rescue-history.json');
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -323,6 +324,59 @@ async function handleDroneCamera(request, response) {
   }
 }
 
+function readRescueHistory() {
+  try {
+    if (!fs.existsSync(rescueHistoryFile)) {
+      fs.writeFileSync(rescueHistoryFile, JSON.stringify([], null, 2));
+      return [];
+    }
+    const raw = fs.readFileSync(rescueHistoryFile, 'utf8');
+    const parsed = JSON.parse(raw || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRescueHistory(records) {
+  const nextRecords = Array.isArray(records) ? records : [];
+  fs.writeFileSync(rescueHistoryFile, JSON.stringify(nextRecords, null, 2));
+  return nextRecords;
+}
+
+async function handleRescueHistory(request, response) {
+  const method = request.method || 'GET';
+  if (method === 'GET') {
+    sendJson(response, 200, readRescueHistory());
+    return;
+  }
+
+  if (method === 'POST') {
+    try {
+      const payload = await readJson(request);
+      const entry = {
+        id: payload?.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        missionId: payload?.missionId || 'unknown',
+        missionName: payload?.missionName || 'Unknown mission',
+        eventType: payload?.eventType || 'mission_event',
+        timestamp: payload?.timestamp || new Date().toISOString(),
+        details: payload?.details || {},
+        snapshot: payload?.snapshot || null
+      };
+      const history = readRescueHistory();
+      const nextHistory = [...history, entry].slice(-200);
+      writeRescueHistory(nextHistory);
+      sendJson(response, 200, { saved: true, total: nextHistory.length });
+      return;
+    } catch {
+      sendJson(response, 400, { error: 'Rescue history payload could not be stored.' });
+      return;
+    }
+  }
+
+  sendJson(response, 405, { error: 'Method not allowed.' });
+}
+
 const handler = (request, response) => {
   const safeRequest = request || {};
   const safeResponse = response || {
@@ -372,6 +426,10 @@ const handler = (request, response) => {
   }
   if (safeRequest.method === 'GET' && apiPath === '/drone/camera') {
     handleDroneCamera(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Drone camera service error.' }));
+    return;
+  }
+  if ((safeRequest.method === 'GET' || safeRequest.method === 'POST') && apiPath === '/rescue/history') {
+    handleRescueHistory(safeRequest, safeResponse);
     return;
   }
 

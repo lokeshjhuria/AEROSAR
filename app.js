@@ -1,8 +1,43 @@
-const state = { data: null, demo: new URLSearchParams(window.location.search).get('demo') === 'true', paused: false, cameraUrl: '' };
+const state = { data: null, demo: new URLSearchParams(window.location.search).get('demo') === 'true', paused: false, cameraUrl: '', rescueHistory: [] };
 
 const bind = (key, value) => document.querySelectorAll(`[data-bind="${key}"]`).forEach((element) => { element.textContent = value ?? '--'; });
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
 const valueOrDash = (value) => escapeHtml(value || '--');
+
+function loadRescueHistory() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('aerosar_rescue_history') || '[]');
+    return Array.isArray(stored) ? stored : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistRescueHistoryAsync(record) {
+  const entry = {
+    id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    missionId: record.missionId || state.data?.missionId || 'unknown',
+    missionName: record.missionName || state.data?.missionName || 'Unknown mission',
+    eventType: record.eventType || 'mission_event',
+    timestamp: record.timestamp || new Date().toISOString(),
+    details: record.details || {},
+    snapshot: record.snapshot || state.data || null
+  };
+
+  const history = loadRescueHistory();
+  history.push(entry);
+  const trimmed = history.slice(-200);
+  localStorage.setItem('aerosar_rescue_history', JSON.stringify(trimmed));
+  state.rescueHistory = trimmed;
+
+  fetch('/api/rescue/history', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(entry)
+  }).catch(() => {});
+
+  return entry;
+}
 
 function resolveCameraUrl() {
   const candidate = localStorage.getItem('aerosar_drone_camera_url') || window.DRONE_CAMERA_URL || '';
@@ -108,6 +143,13 @@ async function openReport() {
     const report = await response.json();
     if (!response.ok) throw new Error(report.error || 'Report could not be generated.');
     status.hidden = true; renderReport(report);
+    persistRescueHistoryAsync({
+      eventType: 'mission_report',
+      missionId: state.data?.missionId || missionId || 'unknown',
+      missionName: state.data?.missionName || 'Unknown mission',
+      details: { reportTitle: report.mission?.name || 'SOS rescue report' },
+      snapshot: report
+    });
   } catch (error) {
     status.textContent = error.message;
   }
@@ -132,6 +174,13 @@ function render(data) {
   document.querySelector('[data-status="drone"]').className = `status-dot ${data.droneStatus === 'IN FLIGHT' ? 'live' : 'warn'}`;
   document.querySelector('[data-status="connection"]').className = `status-dot ${data.connectionStatus === 'CONNECTED' ? 'live' : 'danger'}`;
   document.querySelector('[data-status="ai"]').className = `status-dot ${data.aiStatus === 'PROCESSING' ? 'live' : 'warn'}`;
+  persistRescueHistoryAsync({
+    eventType: 'mission_snapshot',
+    missionId: data.missionId || state.data?.missionId || 'unknown',
+    missionName: data.missionName || 'Unknown mission',
+    details: { missionPhase: data.missionPhase || 'snapshot', dataSource: data.dataSource || 'browser' },
+    snapshot: data
+  });
 }
 
 async function loadProductionData() {
@@ -167,6 +216,12 @@ async function saveAction(action, details = {}) {
   });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Mission action could not be saved.');
+  persistRescueHistoryAsync({
+    eventType: 'mission_action',
+    missionId: state.data?.missionId || 'unknown',
+    missionName: state.data?.missionName || 'Unknown mission',
+    details: { action, details }
+  });
 }
 
 function startDemoClock() {
