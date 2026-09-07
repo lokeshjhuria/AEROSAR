@@ -1,8 +1,76 @@
-const state = { data: null, demo: new URLSearchParams(window.location.search).get('demo') === 'true', paused: false };
+const state = { data: null, demo: new URLSearchParams(window.location.search).get('demo') === 'true', paused: false, cameraUrl: '' };
 
 const bind = (key, value) => document.querySelectorAll(`[data-bind="${key}"]`).forEach((element) => { element.textContent = value ?? '--'; });
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
 const valueOrDash = (value) => escapeHtml(value || '--');
+
+function resolveCameraUrl() {
+  const candidate = localStorage.getItem('aerosar_drone_camera_url') || window.DRONE_CAMERA_URL || '';
+  if (candidate) return candidate.trim();
+  return '';
+}
+
+function buildCameraUrl(url) {
+  const source = url || state.cameraUrl || '/api/drone/camera?demo=true';
+  if (source.startsWith('http://') || source.startsWith('https://')) {
+    return `/api/drone/camera?url=${encodeURIComponent(source)}`;
+  }
+  return source;
+}
+
+function updateCameraStatus(isLive, label, sourceLabel = 'No source connected') {
+  const statusDot = document.getElementById('cameraStatusDot');
+  const statusLabel = document.getElementById('cameraStatusLabel');
+  const sourceText = document.getElementById('cameraStreamSource');
+  if (statusDot) {
+    statusDot.classList.toggle('live', isLive);
+    statusDot.classList.toggle('warn', !isLive);
+  }
+  if (statusLabel) statusLabel.textContent = label;
+  if (sourceText) sourceText.textContent = sourceLabel;
+}
+
+function refreshDroneCamera() {
+  const element = document.getElementById('droneCameraImage');
+  const input = document.getElementById('droneCameraUrl');
+  if (!element) return;
+
+  state.cameraUrl = resolveCameraUrl();
+  const url = buildCameraUrl(state.cameraUrl);
+  if (input && !input.value) input.value = state.cameraUrl;
+  element.src = `${url}${url.includes('?') ? '&' : '?'}ts=${Date.now()}`;
+  updateCameraStatus(Boolean(state.cameraUrl), state.cameraUrl ? 'LIVE' : 'DEMO', state.cameraUrl || 'Demo feed active');
+}
+
+function attachCameraControls() {
+  const connectButton = document.getElementById('cameraConnectButton');
+  const cameraInput = document.getElementById('droneCameraUrl');
+  const image = document.getElementById('droneCameraImage');
+
+  if (cameraInput) {
+    cameraInput.value = resolveCameraUrl();
+  }
+
+  if (connectButton) {
+    connectButton.addEventListener('click', () => {
+      const nextUrl = (cameraInput?.value || '').trim();
+      if (!nextUrl) {
+        localStorage.removeItem('aerosar_drone_camera_url');
+        state.cameraUrl = '';
+        refreshDroneCamera();
+        return;
+      }
+      state.cameraUrl = nextUrl;
+      localStorage.setItem('aerosar_drone_camera_url', nextUrl);
+      refreshDroneCamera();
+    });
+  }
+
+  if (image) {
+    image.addEventListener('load', () => updateCameraStatus(true, 'LIVE', state.cameraUrl || 'Demo feed active'));
+    image.addEventListener('error', () => updateCameraStatus(false, 'OFFLINE', 'Camera stream unavailable'));
+  }
+}
 
 function reportList(items) {
   if (!Array.isArray(items) || !items.length) return '<p class="report-empty">No records returned.</p>';
@@ -141,6 +209,8 @@ function setupControls() {
 
 async function init() {
   setupControls();
+  attachCameraControls();
+  refreshDroneCamera();
   try {
     const data = state.demo ? window.AEROSAR_DEMO : await loadProductionData();
     render(data);

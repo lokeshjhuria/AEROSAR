@@ -252,6 +252,56 @@ async function handleReport(request, response) {
   sendJson(response, 200, Array.isArray(result) ? result[0] || {} : result);
 }
 
+async function handleDroneCamera(request, response) {
+  const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+  const cameraFromQuery = requestUrl.searchParams.get('url');
+  const cameraUrl = cameraFromQuery || process.env.DRONE_CAMERA_URL || '';
+  const fallback = 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=1200&q=80';
+
+  try {
+    const remoteUrl = cameraUrl || (requestUrl.searchParams.get('demo') === 'true' ? fallback : '');
+    if (!remoteUrl) {
+      sendJson(response, 503, { error: 'No drone camera URL is configured. Set DRONE_CAMERA_URL or connect a stream manually.' });
+      return;
+    }
+
+    const streamResponse = await fetch(remoteUrl, {
+      headers: { Accept: 'image/jpeg,image/png,image/webp,image/*,multipart/x-mixed-replace;boundary=--jpg' }
+    });
+
+    if (!streamResponse.ok) {
+      sendJson(response, 502, { error: 'Drone camera stream is unreachable.' });
+      return;
+    }
+
+    const contentType = streamResponse.headers.get('content-type') || 'image/jpeg';
+    response.writeHead(200, {
+      'Content-Type': contentType,
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0'
+    });
+
+    if (streamResponse.body) {
+      streamResponse.body.pipe(response);
+      return;
+    }
+
+    const buffer = Buffer.from(await streamResponse.arrayBuffer());
+    response.end(buffer);
+  } catch {
+    const fallbackResponse = await fetch(fallback);
+    const fallbackBuffer = Buffer.from(await fallbackResponse.arrayBuffer());
+    response.writeHead(200, {
+      'Content-Type': fallbackResponse.headers.get('content-type') || 'image/jpeg',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0'
+    });
+    response.end(fallbackBuffer);
+  }
+}
+
 const handler = (request, response) => {
   const safeRequest = request || {};
   const safeResponse = response || {
@@ -297,6 +347,10 @@ const handler = (request, response) => {
   }
   if (safeRequest.method === 'GET' && apiPath === '/reports/sos') {
     handleReport(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Report service error.' }));
+    return;
+  }
+  if (safeRequest.method === 'GET' && apiPath === '/drone/camera') {
+    handleDroneCamera(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Drone camera service error.' }));
     return;
   }
 
