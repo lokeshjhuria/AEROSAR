@@ -1,2 +1,2 @@
-const handler = require('../../server');
+const handler = require('../../dev-server');
 module.exports = (req, res) => handler(req, res, '/drone/camera');
