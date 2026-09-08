@@ -5,7 +5,9 @@ const state = {
   data: null,
   user: null,
   demo: isBrowser ? new URLSearchParams(window.location.search).get('demo') === 'true' : false,
-  paused: false
+  paused: false,
+  reportLoading: false,
+  pauseLoading: false
 };
 
 const bind = (key, value) => document.querySelectorAll(`[data-bind="${key}"]`).forEach((element) => { element.textContent = value ?? '--'; });
@@ -201,9 +203,16 @@ async function openReport() {
   const modal = document.getElementById('reportModal');
   const status = document.getElementById('reportStatus');
   const content = document.getElementById('reportContent');
+  const reportButton = document.getElementById('reportButton');
+  if (!modal || !status || !content || state.reportLoading) return;
+  state.reportLoading = true;
+  if (reportButton) {
+    reportButton.disabled = true;
+    reportButton.setAttribute('aria-busy', 'true');
+  }
   modal.hidden = false;
   status.hidden = false;
-  status.textContent = 'Loading mission records from Supabase...';
+  status.textContent = state.demo ? 'Generating demo SOS report...' : 'Loading mission records from Supabase...';
   content.innerHTML = '';
   try {
     const missionId = state.data?.missionId || '';
@@ -227,6 +236,12 @@ async function openReport() {
     });
   } catch (error) {
     status.textContent = error.message;
+  } finally {
+    state.reportLoading = false;
+    if (reportButton) {
+      reportButton.disabled = false;
+      reportButton.removeAttribute('aria-busy');
+    }
   }
 }
 
@@ -453,25 +468,44 @@ function setupControls() {
     if (reportModal && event.target === reportModal) reportModal.hidden = true;
   });
 
-  document.getElementById('reportButton').addEventListener('click', openReport);
-  document.getElementById('reportClose').addEventListener('click', () => { document.getElementById('reportModal').hidden = true; });
-  document.getElementById('detectionClose').addEventListener('click', () => { document.getElementById('detectionModal').hidden = true; });
-  document.getElementById('viewDetectionsButton').addEventListener('click', openDetections);
-  document.getElementById('expandMapButton').addEventListener('click', toggleMapExpand);
-  document.getElementById('pauseButton').addEventListener('click', async () => {
+  const reportButton = document.getElementById('reportButton');
+  if (reportButton) reportButton.addEventListener('click', openReport);
+  const reportClose = document.getElementById('reportClose');
+  if (reportClose) reportClose.addEventListener('click', () => { document.getElementById('reportModal').hidden = true; });
+  const detectionClose = document.getElementById('detectionClose');
+  if (detectionClose) detectionClose.addEventListener('click', () => { document.getElementById('detectionModal').hidden = true; });
+  const viewDetectionsButton = document.getElementById('viewDetectionsButton');
+  if (viewDetectionsButton) viewDetectionsButton.addEventListener('click', openDetections);
+  const expandMapButton = document.getElementById('expandMapButton');
+  if (expandMapButton) expandMapButton.addEventListener('click', toggleMapExpand);
+  const pauseButton = document.getElementById('pauseButton');
+  if (pauseButton) pauseButton.addEventListener('click', async () => {
+    if (state.pauseLoading) return;
+    state.pauseLoading = true;
+    pauseButton.disabled = true;
+    pauseButton.setAttribute('aria-busy', 'true');
     const nextPaused = !state.paused;
     try {
       await saveAction(nextPaused ? 'pause_mission' : 'resume_mission');
       state.paused = nextPaused;
       bind('missionAction', state.paused ? 'RESUME MISSION' : 'PAUSE MISSION');
-      document.querySelector('.pulse-label').classList.toggle('is-paused', state.paused);
+      const pulseLabel = document.querySelector('.pulse-label');
+      if (pulseLabel) pulseLabel.classList.toggle('is-paused', state.paused);
     } catch (error) {
-      document.getElementById('dataNotice').hidden = false;
-      document.getElementById('dataNotice').textContent = error.message;
+      const notice = document.getElementById('dataNotice');
+      if (notice) {
+        notice.hidden = false;
+        notice.textContent = error.message;
+      }
+    } finally {
+      state.pauseLoading = false;
+      pauseButton.disabled = false;
+      pauseButton.removeAttribute('aria-busy');
     }
   });
 
-  document.getElementById('acknowledgeButton').addEventListener('click', async (event) => {
+  const acknowledgeButton = document.getElementById('acknowledgeButton');
+  if (acknowledgeButton) acknowledgeButton.addEventListener('click', async (event) => {
     try {
       await saveAction('acknowledge_all');
       event.currentTarget.textContent = 'ALL ACTIONS ACKNOWLEDGED ✓';
