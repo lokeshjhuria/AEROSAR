@@ -1,4 +1,6 @@
-require('dotenv').config();
+try {
+  require('dotenv').config();
+} catch {}
 
 const http = require('http');
 const fs = require('fs');
@@ -6,7 +8,7 @@ const path = require('path');
 const { Readable } = require('stream');
 
 const port = Number(process.env.PORT || 8000);
-const root = process.cwd();
+const root = __dirname;
 const demoSessionToken = 'demo-local-session';
 const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
 const defaultRescueHistoryFile = path.resolve(root, 'rescue-history.json');
@@ -552,13 +554,11 @@ const handler = async (request, response, routeOverride) => {
 
   try {
     const requestUrl = new URL(safeRequest.url || '/', `http://${safeRequest.headers?.host || 'localhost'}`);
-    let apiPath;
-    if (routeOverride) {
-      apiPath = routeOverride.startsWith('/') ? routeOverride : `/${routeOverride}`;
-    } else {
-      const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
-      apiPath = routePath.startsWith('/api/') ? routePath.slice(4) : routePath;
-    }
+    const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
+    let apiPath = routeOverride
+      ? (routeOverride.startsWith('/') ? routeOverride : `/${routeOverride}`)
+      : (routePath.startsWith('/api/') ? routePath.slice(4) : routePath);
+
     if (apiPath.length > 1 && apiPath.endsWith('/')) {
       apiPath = apiPath.slice(0, -1);
     }

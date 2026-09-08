@@ -2,12 +2,13 @@
   "name": "aerosar-command",
   "private": true,
   "version": "0.1.0",
+  "main": "server.js",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "dev": "node dev-server.js",
-    "start": "node dev-server.js"
+    "dev": "node server.js",
+    "start": "node server.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2"

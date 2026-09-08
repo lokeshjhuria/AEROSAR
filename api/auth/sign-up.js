@@ -1,2 +1,2 @@
-const handler = require('../../dev-server');
+const handler = require('../../server');
 module.exports = (req, res) => handler(req, res, '/auth/sign-up');

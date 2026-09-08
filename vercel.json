@@ -1,1 +1,7 @@
-{}
+{
+  "functions": {
+    "server.js": {
+      "includeFiles": "*.{html,css,js,json,png,jpg,svg}"
+    }
+  }
+}
