@@ -140,6 +140,44 @@ function renderReport(report) {
   document.getElementById('reportSubtitle').textContent = report.generatedAt ? `Generated ${report.generatedAt}` : 'Generated from mission records';
 }
 
+function buildMissionReport() {
+  const mission = state.data || {};
+  const generatedAt = new Date().toISOString();
+  return {
+    generatedAt,
+    mission: {
+      id: mission.missionId,
+      name: mission.missionName,
+      location: mission.missionLocation,
+      outcome: mission.missionPhase,
+      startedAt: new Date(Date.now() - (Number(mission.missionTimerSeconds) || 0) * 1000).toISOString(),
+      endedAt: generatedAt,
+      duration: new Date((Number(mission.missionTimerSeconds) || 0) * 1000).toISOString().slice(11, 19)
+    },
+    drone: {
+      id: mission.droneId,
+      model: mission.droneModel,
+      flightTime: mission.flightTime,
+      battery: mission.battery
+    },
+    sensorStatistics: {
+      detections: mission.detections?.length || 0,
+      tasks: mission.tasks?.length || 0,
+      coordinates: mission.coordinates
+    },
+    aiPerformance: {
+      status: mission.aiStatus,
+      lastInference: mission.lastInference
+    },
+    detectedPeople: (mission.detections || []).filter((item) => item.type === 'PERSON'),
+    detectedHazards: (mission.detections || []).filter((item) => item.type !== 'PERSON'),
+    incidentCoordinates: mission.coordinates,
+    timestamps: [{ label: 'Report generated', value: generatedAt }],
+    alertHistory: mission.tasks || [],
+    dispatchActions: mission.tasks || []
+  };
+}
+
 async function openReport() {
   const modal = document.getElementById('reportModal');
   const status = document.getElementById('reportStatus');
@@ -150,9 +188,15 @@ async function openReport() {
   content.innerHTML = '';
   try {
     const missionId = state.data?.missionId || '';
-    const response = await fetch(`/api/reports/sos?mission_id=${encodeURIComponent(missionId)}`, { headers: { Accept: 'application/json' } });
-    const report = await response.json();
-    if (!response.ok) throw new Error(report.error || 'Report could not be generated.');
+    let report;
+    if (state.demo) {
+      report = buildMissionReport();
+    } else {
+      const response = await fetch(`/api/reports/sos?mission_id=${encodeURIComponent(missionId)}`, { headers: { Accept: 'application/json' } });
+      report = await response.json();
+      if (!response.ok) throw new Error(report.error || 'Report could not be generated.');
+      if (!report.mission) report = buildMissionReport();
+    }
 
     status.hidden = true; renderReport(report);
     persistRescueHistoryAsync({
