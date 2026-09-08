@@ -20296,14 +20296,5 @@
       ],
       "operatorEmail": "lokeshjhuria7@gmail.com"
     }
-  },
-  {
-    "id": "validation-entry",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "validation",
-    "timestamp": "2026-09-08T00:00:00.000Z",
-    "details": {},
-    "snapshot": {}
   }
 ]
