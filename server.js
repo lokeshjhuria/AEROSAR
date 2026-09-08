@@ -3,11 +3,15 @@ require('dotenv').config();
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { Readable } = require('stream');
 
 const port = Number(process.env.PORT || 8000);
 const root = process.cwd();
 const demoSessionToken = 'demo-local-session';
-const rescueHistoryFile = path.resolve(root, 'rescue-history.json');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
+const defaultRescueHistoryFile = path.resolve(root, 'rescue-history.json');
+const writableRescueHistoryFile = isServerless ? path.resolve('/tmp', 'rescue-history.json') : defaultRescueHistoryFile;
+let inMemoryRescueHistory = null;
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -60,11 +64,23 @@ function demoCookieHeader() {
 }
 
 async function readJson(request) {
-  let rawBody = '';
-  if (!request || typeof request[Symbol.asyncIterator] !== 'function') {
+  if (!request) return {};
+  if (request.body !== undefined && request.body !== null) {
+    if (typeof request.body === 'object') return request.body;
+    if (typeof request.body === 'string') {
+      try {
+        return request.body.trim() ? JSON.parse(request.body) : {};
+      } catch {
+        throw new Error('Invalid JSON request body.');
+      }
+    }
+  }
+
+  if (typeof request[Symbol.asyncIterator] !== 'function') {
     return {};
   }
 
+  let rawBody = '';
   for await (const chunk of request) rawBody += chunk;
   if (!rawBody.trim()) return {};
   try {
@@ -414,13 +430,19 @@ async function handleDroneCamera(request, response) {
     }
 
     if (streamResponse.body) {
-      streamResponse.body.on('error', () => {
-        if (!response.writableEnded) {
-          response.destroy();
-        }
-      });
-      streamResponse.body.pipe(response);
-      return;
+      const readable = typeof streamResponse.body.pipe === 'function'
+        ? streamResponse.body
+        : (typeof Readable.fromWeb === 'function' ? Readable.fromWeb(streamResponse.body) : null);
+
+      if (readable && typeof readable.pipe === 'function') {
+        readable.on('error', () => {
+          if (!response.writableEnded) {
+            response.destroy();
+          }
+        });
+        readable.pipe(response);
+        return;
+      }
     }
 
     const buffer = Buffer.from(await streamResponse.arrayBuffer());
@@ -449,22 +471,40 @@ async function handleDroneCamera(request, response) {
 }
 
 function readRescueHistory() {
+  if (Array.isArray(inMemoryRescueHistory)) {
+    return inMemoryRescueHistory;
+  }
   try {
-    if (!fs.existsSync(rescueHistoryFile)) {
-      fs.writeFileSync(rescueHistoryFile, JSON.stringify([], null, 2));
-      return [];
+    const fileToRead = (isServerless && fs.existsSync(writableRescueHistoryFile))
+      ? writableRescueHistoryFile
+      : (fs.existsSync(defaultRescueHistoryFile) ? defaultRescueHistoryFile : null);
+
+    if (fileToRead) {
+      const raw = fs.readFileSync(fileToRead, 'utf8');
+      const parsed = JSON.parse(raw || '[]');
+      inMemoryRescueHistory = Array.isArray(parsed) ? parsed : [];
+      return inMemoryRescueHistory;
     }
-    const raw = fs.readFileSync(rescueHistoryFile, 'utf8');
-    const parsed = JSON.parse(raw || '[]');
-    return Array.isArray(parsed) ? parsed : [];
+
+    if (!isServerless) {
+      fs.writeFileSync(defaultRescueHistoryFile, JSON.stringify([], null, 2));
+    }
+    inMemoryRescueHistory = [];
+    return [];
   } catch {
+    inMemoryRescueHistory = [];
     return [];
   }
 }
 
 function writeRescueHistory(records) {
   const nextRecords = Array.isArray(records) ? records : [];
-  fs.writeFileSync(rescueHistoryFile, JSON.stringify(nextRecords, null, 2));
+  inMemoryRescueHistory = nextRecords;
+  try {
+    fs.writeFileSync(writableRescueHistoryFile, JSON.stringify(nextRecords, null, 2));
+  } catch (error) {
+    console.warn('Could not write rescue history to disk:', error.message);
+  }
   return nextRecords;
 }
 
@@ -501,7 +541,7 @@ async function handleRescueHistory(request, response) {
   sendJson(response, 405, { error: 'Method not allowed.' });
 }
 
-const handler = (request, response) => {
+const handler = async (request, response) => {
   const safeRequest = request || {};
   const safeResponse = response || {
     setHeader() {},
@@ -509,98 +549,114 @@ const handler = (request, response) => {
     end() {},
     write() {}
   };
-  const requestUrl = new URL(safeRequest.url || '/', `http://${safeRequest.headers?.host || 'localhost'}`);
-  const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
-  const apiPath = routePath.startsWith('/api/') ? routePath.slice(4) : routePath;
 
-  if (safeRequest.method === 'GET' && apiPath === '/health') {
-    sendJson(safeResponse, 200, {
-      ok: true,
-      supabase: Boolean(supabaseConfig().url && supabaseConfig().anonKey),
-      dashboard: Boolean(process.env.SUPABASE_DASHBOARD_ENDPOINT),
-      reports: Boolean(process.env.SUPABASE_REPORTS_ENDPOINT),
-      actions: Boolean(process.env.SUPABASE_ACTIONS_ENDPOINT)
-    });
-    return;
-  }
+  try {
+    const requestUrl = new URL(safeRequest.url || '/', `http://${safeRequest.headers?.host || 'localhost'}`);
+    const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
+    let apiPath = routePath.startsWith('/api/') ? routePath.slice(4) : routePath;
+    if (apiPath.length > 1 && apiPath.endsWith('/')) {
+      apiPath = apiPath.slice(0, -1);
+    }
 
-  if (safeRequest.method === 'GET' && apiPath === '/dashboard') {
-    handleDashboard(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Dashboard service error.' }));
-    return;
-  }
-  if (safeRequest.method === 'POST' && apiPath === '/mission-actions') {
-    handleAction(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Mission action service error.' }));
-    return;
-  }
-  if (safeRequest.method === 'POST' && apiPath === '/auth/sign-in') {
-    handleSignIn(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Authentication service error.' }));
-    return;
-  }
-  if (safeRequest.method === 'POST' && apiPath === '/auth/sign-up') {
-    handleSignUp(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Registration service error.' }));
-    return;
-  }
-  if (safeRequest.method === 'POST' && apiPath === '/auth/sign-out') {
-    handleSignOut(safeRequest, safeResponse);
-    return;
-  }
-  if (safeRequest.method === 'POST' && apiPath === '/auth/recover') {
-    handleRecover(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Recovery service error.' }));
-    return;
-  }
-  if (safeRequest.method === 'POST' && apiPath === '/auth/update-password') {
-    handleUpdatePassword(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Update service error.' }));
-    return;
-  }
-  if (safeRequest.method === 'GET' && apiPath === '/auth/session') {
-    handleSession(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 401, { authenticated: false }));
-    return;
-  }
-  if (safeRequest.method === 'GET' && apiPath === '/reports/sos') {
-    handleReport(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Report service error.' }));
-    return;
-  }
-  if (safeRequest.method === 'GET' && apiPath === '/drone/camera') {
-    handleDroneCamera(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Drone camera service error.' }));
-    return;
-  }
-  if ((safeRequest.method === 'GET' || safeRequest.method === 'POST') && apiPath === '/rescue/history') {
-    handleRescueHistory(safeRequest, safeResponse);
-    return;
-  }
-
-  if (safeRequest.method !== 'GET' && safeRequest.method !== 'HEAD') {
-    safeResponse.writeHead(405);
-    safeResponse.end('Method not allowed');
-    return;
-  }
-
-  const requestPath = decodeURIComponent(requestUrl.pathname);
-  const isDemo = requestUrl.searchParams.get('demo') === 'true';
-  if ((requestPath === '/' || requestPath === '/index.html') && !requestAccessToken(safeRequest) && !isDemo) {
-    safeResponse.writeHead(302, { Location: '/auth.html' });
-    safeResponse.end();
-    return;
-  }
-  const relativePath = requestPath === '/' ? '/index.html' : requestPath;
-  const filePath = path.resolve(root, `.${relativePath}`);
-
-  if (!filePath.startsWith(root)) {
-    safeResponse.writeHead(403);
-    safeResponse.end('Forbidden');
-    return;
-  }
-
-  fs.readFile(filePath, (error, content) => {
-    if (error) {
-      safeResponse.writeHead(error.code === 'ENOENT' ? 404 : 500);
-      safeResponse.end(error.code === 'ENOENT' ? 'Not found' : 'Server error');
+    if (safeRequest.method === 'GET' && (apiPath === '/health' || apiPath === 'health')) {
+      sendJson(safeResponse, 200, {
+        ok: true,
+        supabase: Boolean(supabaseConfig().url && supabaseConfig().anonKey),
+        dashboard: Boolean(process.env.SUPABASE_DASHBOARD_ENDPOINT),
+        reports: Boolean(process.env.SUPABASE_REPORTS_ENDPOINT),
+        actions: Boolean(process.env.SUPABASE_ACTIONS_ENDPOINT)
+      });
       return;
     }
 
-    safeResponse.writeHead(200, { 'Content-Type': contentTypes[path.extname(filePath)] || 'application/octet-stream' });
-    safeResponse.end(content);
-  });
+    if (safeRequest.method === 'GET' && (apiPath === '/dashboard' || apiPath === 'dashboard')) {
+      await handleDashboard(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Dashboard service error.' }));
+      return;
+    }
+    if (safeRequest.method === 'POST' && (apiPath === '/mission-actions' || apiPath === 'mission-actions')) {
+      await handleAction(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Mission action service error.' }));
+      return;
+    }
+    if (safeRequest.method === 'POST' && (apiPath === '/auth/sign-in' || apiPath === 'auth/sign-in')) {
+      await handleSignIn(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Authentication service error.' }));
+      return;
+    }
+    if (safeRequest.method === 'POST' && (apiPath === '/auth/sign-up' || apiPath === 'auth/sign-up')) {
+      await handleSignUp(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Registration service error.' }));
+      return;
+    }
+    if (safeRequest.method === 'POST' && (apiPath === '/auth/sign-out' || apiPath === 'auth/sign-out')) {
+      handleSignOut(safeRequest, safeResponse);
+      return;
+    }
+    if (safeRequest.method === 'POST' && (apiPath === '/auth/recover' || apiPath === 'auth/recover')) {
+      await handleRecover(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Recovery service error.' }));
+      return;
+    }
+    if (safeRequest.method === 'POST' && (apiPath === '/auth/update-password' || apiPath === 'auth/update-password')) {
+      await handleUpdatePassword(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Update service error.' }));
+      return;
+    }
+    if (safeRequest.method === 'GET' && (apiPath === '/auth/session' || apiPath === 'auth/session')) {
+      await handleSession(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 401, { authenticated: false }));
+      return;
+    }
+    if (safeRequest.method === 'GET' && (apiPath === '/reports/sos' || apiPath === 'reports/sos')) {
+      await handleReport(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Report service error.' }));
+      return;
+    }
+    if (safeRequest.method === 'GET' && (apiPath === '/drone/camera' || apiPath === 'drone/camera')) {
+      await handleDroneCamera(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Drone camera service error.' }));
+      return;
+    }
+    if ((safeRequest.method === 'GET' || safeRequest.method === 'POST') && (apiPath === '/rescue/history' || apiPath === 'rescue/history')) {
+      await handleRescueHistory(safeRequest, safeResponse);
+      return;
+    }
+
+    if (apiPath.startsWith('/') && (routePath.startsWith('/api/') || routePath === '/api')) {
+      sendJson(safeResponse, 404, { error: `API route not found: ${routePath}` });
+      return;
+    }
+
+    if (safeRequest.method !== 'GET' && safeRequest.method !== 'HEAD') {
+      safeResponse.writeHead(405);
+      safeResponse.end('Method not allowed');
+      return;
+    }
+
+    const requestPath = decodeURIComponent(requestUrl.pathname);
+    const isDemo = requestUrl.searchParams.get('demo') === 'true';
+    if ((requestPath === '/' || requestPath === '/index.html') && !requestAccessToken(safeRequest) && !isDemo) {
+      safeResponse.writeHead(302, { Location: '/auth.html' });
+      safeResponse.end();
+      return;
+    }
+    const relativePath = requestPath === '/' ? '/index.html' : requestPath;
+    const filePath = path.resolve(root, `.${relativePath}`);
+
+    if (!filePath.startsWith(root)) {
+      safeResponse.writeHead(403);
+      safeResponse.end('Forbidden');
+      return;
+    }
+
+    try {
+      const content = await fs.promises.readFile(filePath);
+      safeResponse.writeHead(200, { 'Content-Type': contentTypes[path.extname(filePath)] || 'application/octet-stream' });
+      safeResponse.end(content);
+    } catch (error) {
+      safeResponse.writeHead(error.code === 'ENOENT' ? 404 : 500);
+      safeResponse.end(error.code === 'ENOENT' ? 'Not found' : 'Server error');
+    }
+  } catch (error) {
+    console.error('Unhandled server error:', error);
+    if (!safeResponse.headersSent) {
+      sendJson(safeResponse, 500, { error: 'Internal server error.' });
+    } else if (!safeResponse.writableEnded) {
+      safeResponse.end();
+    }
+  }
 };
 
 module.exports = handler;
