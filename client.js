@@ -122,6 +122,7 @@ function reportList(items) {
 
 function renderReport(report) {
   const sections = [
+    ['Rescue scenario', `<dl><dt>Incident type</dt><dd>${valueOrDash(report.scenario?.type)}</dd><dt>Situation</dt><dd>${valueOrDash(report.scenario?.summary)}</dd><dt>Primary risks</dt><dd>${valueOrDash(report.scenario?.risks)}</dd></dl>`],
     ['Mission information', `<dl><dt>Mission</dt><dd>${valueOrDash(report.mission?.name)}</dd><dt>Mission ID</dt><dd>${valueOrDash(report.mission?.id)}</dd><dt>Location</dt><dd>${valueOrDash(report.mission?.location)}</dd><dt>Outcome</dt><dd>${valueOrDash(report.mission?.outcome)}</dd></dl>`],
     ['Mission duration', `<dl><dt>Started</dt><dd>${valueOrDash(report.mission?.startedAt)}</dd><dt>Ended</dt><dd>${valueOrDash(report.mission?.endedAt)}</dd><dt>Duration</dt><dd>${valueOrDash(report.mission?.duration)}</dd></dl>`],
     ['Drone information', `<dl><dt>Unit</dt><dd>${valueOrDash(report.drone?.id)}</dd><dt>Model</dt><dd>${valueOrDash(report.drone?.model)}</dd><dt>Flight time</dt><dd>${valueOrDash(report.drone?.flightTime)}</dd><dt>Battery</dt><dd>${valueOrDash(report.drone?.battery)}</dd></dl>`],
@@ -133,6 +134,7 @@ function renderReport(report) {
     ['Timestamps', report.timestamps ? reportList(report.timestamps) : '<p class="report-empty">No records returned.</p>'],
     ['Alert history', report.alertHistory ? reportList(report.alertHistory) : '<p class="report-empty">No records returned.</p>'],
     ['Dispatch actions', report.dispatchActions ? reportList(report.dispatchActions) : '<p class="report-empty">No records returned.</p>'],
+    ['Recommended response', report.scenario?.actions ? reportList(report.scenario.actions) : '<p class="report-empty">No records returned.</p>'],
     ['Mission outcome', `<p>${valueOrDash(report.mission?.outcome)}</p>`]
   ];
   document.getElementById('reportContent').innerHTML = sections.map(([title, content]) => `<section class="report-section"><span class="eyebrow">${escapeHtml(title)}</span>${content}</section>`).join('');
@@ -140,11 +142,28 @@ function renderReport(report) {
   document.getElementById('reportSubtitle').textContent = report.generatedAt ? `Generated ${report.generatedAt}` : 'Generated from mission records';
 }
 
+function getRescueScenario(mission) {
+  const requestedType = new URLSearchParams(window.location.search).get('scenario') || mission.rescueType || mission.incidentType || '';
+  const source = `${requestedType} ${mission.missionName || ''} ${(mission.detections || []).map((item) => item.type).join(' ')}`.toLowerCase();
+  if (source.includes('flood') || source.includes('water') || source.includes('river')) {
+    return { type: 'Flood rescue', summary: 'Possible flooding or fast-moving water affecting people and access routes.', risks: 'Rising water, unstable roads, hypothermia, and blocked evacuation routes.', actions: ['Locate people on rooftops and isolated ground', 'Track water level and safe landing zones', 'Dispatch water rescue and medical teams'] };
+  }
+  if (source.includes('fire') || source.includes('smoke') || source.includes('thermal')) {
+    return { type: 'Wildfire or fire rescue', summary: 'Heat or smoke indicators require search and rescue near an active fire zone.', risks: 'Smoke inhalation, heat exposure, changing wind, and structural collapse.', actions: ['Map the fire perimeter and escape routes', 'Keep the drone upwind of smoke', 'Dispatch fire suppression and evacuation teams'] };
+  }
+  if (source.includes('earthquake') || source.includes('collapse') || source.includes('rubble')) {
+    return { type: 'Earthquake or structural collapse', summary: 'People may be trapped in damaged structures or debris fields.', risks: 'Secondary collapse, dust, gas leaks, and inaccessible roads.', actions: ['Scan debris for heat signatures', 'Mark safe approach corridors', 'Dispatch urban search and rescue teams'] };
+  }
+  return { type: 'Mountain search and rescue', summary: 'Aerial search is active for people, vehicles, or hazards in difficult terrain.', risks: 'Terrain exposure, weather changes, limited access, and low battery margins.', actions: ['Prioritize high-confidence person detections', 'Share coordinates with ground teams', 'Maintain an emergency return-to-home reserve'] };
+}
+
 function buildMissionReport() {
   const mission = state.data || {};
   const generatedAt = new Date().toISOString();
+  const scenario = getRescueScenario(mission);
   return {
     generatedAt,
+    scenario,
     mission: {
       id: mission.missionId,
       name: mission.missionName,
