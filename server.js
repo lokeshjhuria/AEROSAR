@@ -46,10 +46,12 @@ function supabaseConfig() {
   const url = getEnvValue('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL');
   const anonKey = getEnvValue('SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY');
   const reportsEndpoint = getEnvValue('SUPABASE_REPORTS_ENDPOINT');
+  const actionsEndpoint = getEnvValue('SUPABASE_ACTIONS_ENDPOINT');
   return {
     url: isConfiguredSupabaseValue(url) ? url.replace(/\/$/, '') : '',
     anonKey: isConfiguredSupabaseValue(anonKey) ? anonKey : '',
-    reportsEndpoint: isConfiguredSupabaseValue(reportsEndpoint) ? reportsEndpoint : ''
+    reportsEndpoint: isConfiguredSupabaseValue(reportsEndpoint) ? reportsEndpoint : '',
+    actionsEndpoint: isConfiguredSupabaseValue(actionsEndpoint) ? actionsEndpoint : ''
   };
 }
 
@@ -113,9 +115,9 @@ async function handleDashboard(request, response) {
 }
 
 async function handleAction(request, response) {
-  const { url, anonKey } = supabaseConfig();
+  const { url, anonKey, actionsEndpoint } = supabaseConfig();
   const accessToken = requestAccessToken(request);
-  if (!url || !anonKey || !process.env.SUPABASE_ACTIONS_ENDPOINT) {
+  if (!url || !anonKey || !actionsEndpoint) {
     sendJson(response, 503, { error: 'Action storage is not configured. Set Supabase credentials and SUPABASE_ACTIONS_ENDPOINT.' });
     return;
   }
@@ -137,7 +139,7 @@ async function handleAction(request, response) {
     return;
   }
 
-  const supabaseResponse = await fetch(process.env.SUPABASE_ACTIONS_ENDPOINT, {
+  const supabaseResponse = await fetch(actionsEndpoint, {
     method: 'POST',
     headers: supabaseHeaders(anonKey, { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
     body: JSON.stringify({ mission_id: action.mission_id, action: action.action, details: action.details || {}, operator_id: user.id })
@@ -571,7 +573,7 @@ const handler = async (request, response, routeOverride) => {
         supabase: Boolean(supabaseConfig().url && supabaseConfig().anonKey),
         dashboard: Boolean(process.env.SUPABASE_DASHBOARD_ENDPOINT),
         reports: Boolean(supabaseConfig().reportsEndpoint),
-        actions: Boolean(process.env.SUPABASE_ACTIONS_ENDPOINT)
+        actions: Boolean(supabaseConfig().actionsEndpoint)
       });
       return;
     }
