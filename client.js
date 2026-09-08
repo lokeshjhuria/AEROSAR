@@ -1,8 +1,10 @@
 
+const isBrowser = typeof window !== 'undefined';
+
 const state = {
   data: null,
   user: null,
-  demo: new URLSearchParams(window.location.search).get('demo') === 'true',
+  demo: isBrowser ? new URLSearchParams(window.location.search).get('demo') === 'true' : false,
   paused: false
 };
 
@@ -452,4 +454,6 @@ async function init() {
   }
 }
 
-init();
+if (isBrowser) {
+  init();
+}
