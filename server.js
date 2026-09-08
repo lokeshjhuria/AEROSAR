@@ -147,10 +147,12 @@ async function handleSignIn(request, response) {
 
   try {
     const credentials = await readJson(request);
+    const email = credentials.email ? String(credentials.email).trim().toLowerCase() : '';
+    const password = credentials.password ? String(credentials.password) : '';
     const supabaseResponse = await fetch(`${url}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: supabaseHeaders(anonKey, { 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ email: credentials.email, password: credentials.password })
+      body: JSON.stringify({ email, password })
     });
     const result = await supabaseResponse.json();
 
@@ -159,9 +161,72 @@ async function handleSignIn(request, response) {
       return;
     }
 
-    sendJson(response, 200, { authenticated: true }, { 'Set-Cookie': `aerosar_access_token=${result.access_token}; HttpOnly; SameSite=Lax; Path=/` });
+    const secureFlag = isConfiguredSupabaseValue(url) && url.startsWith('https') ? '; Secure' : '';
+    const maxAge = credentials.remember ? '; Max-Age=2592000' : '';
+    sendJson(response, 200, { authenticated: true }, { 'Set-Cookie': `aerosar_access_token=${result.access_token}; HttpOnly; SameSite=Lax; Path=/${secureFlag}${maxAge}` });
   } catch {
     sendJson(response, 400, { error: 'Sign-in request could not be processed.' });
+  }
+}
+
+function handleSignOut(request, response) {
+  sendJson(response, 200, { authenticated: false }, { 'Set-Cookie': 'aerosar_access_token=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0' });
+}
+
+async function handleRecover(request, response) {
+  const { url, anonKey } = supabaseConfig();
+  if (!url || !anonKey) {
+    sendJson(response, 400, { error: 'Recovery requires configured Supabase.' });
+    return;
+  }
+  try {
+    const body = await readJson(request);
+    const email = body.email ? String(body.email).trim().toLowerCase() : '';
+    if (!email) {
+      sendJson(response, 400, { error: 'Email is required.' });
+      return;
+    }
+    const supabaseResponse = await fetch(`${url}/auth/v1/recover`, {
+      method: 'POST',
+      headers: supabaseHeaders(anonKey, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ email })
+    });
+    const result = await supabaseResponse.json().catch(() => ({}));
+    if (!supabaseResponse.ok) {
+      sendJson(response, 400, { error: result.msg || result.error_description || 'Recovery request failed.' });
+      return;
+    }
+    sendJson(response, 200, { recoverySent: true });
+  } catch {
+    sendJson(response, 400, { error: 'Recovery request could not be processed.' });
+  }
+}
+
+async function handleUpdatePassword(request, response) {
+  const { url, anonKey } = supabaseConfig();
+  if (!url || !anonKey) {
+    sendJson(response, 400, { error: 'Requires configured Supabase.' });
+    return;
+  }
+  try {
+    const { access_token, password } = await readJson(request);
+    if (!access_token || !password || password.length < 6) {
+      sendJson(response, 400, { error: 'Invalid request or password too short.' });
+      return;
+    }
+    const supabaseResponse = await fetch(`${url}/auth/v1/user`, {
+      method: 'PUT',
+      headers: supabaseHeaders(anonKey, { 'Content-Type': 'application/json', Authorization: `Bearer ${access_token}` }),
+      body: JSON.stringify({ password })
+    });
+    const result = await supabaseResponse.json().catch(() => ({}));
+    if (!supabaseResponse.ok) {
+      sendJson(response, 400, { error: result.msg || result.error_description || 'Update failed.' });
+      return;
+    }
+    sendJson(response, 200, { updated: true });
+  } catch {
+    sendJson(response, 400, { error: 'Update request could not be processed.' });
   }
 }
 
@@ -170,7 +235,9 @@ async function handleSignUp(request, response) {
   if (!url || !anonKey) {
     try {
       const credentials = await readJson(request);
-      if (!credentials.email || !credentials.password || credentials.password.length < 6) {
+      const email = credentials.email ? String(credentials.email).trim().toLowerCase() : '';
+      const password = credentials.password ? String(credentials.password) : '';
+      if (!email || !password || password.length < 6) {
         sendJson(response, 400, { error: 'Provide an email and a password with at least 6 characters.' });
         return;
       }
@@ -184,7 +251,9 @@ async function handleSignUp(request, response) {
 
   try {
     const credentials = await readJson(request);
-    if (!credentials.email || !credentials.password || credentials.password.length < 6) {
+    const email = credentials.email ? String(credentials.email).trim().toLowerCase() : '';
+    const password = credentials.password ? String(credentials.password) : '';
+    if (!email || !password || password.length < 6) {
       sendJson(response, 400, { error: 'Provide an email and a password with at least 6 characters.' });
       return;
     }
@@ -192,7 +261,7 @@ async function handleSignUp(request, response) {
     const supabaseResponse = await fetch(`${url}/auth/v1/signup`, {
       method: 'POST',
       headers: supabaseHeaders(anonKey, { 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ email: credentials.email, password: credentials.password })
+      body: JSON.stringify({ email, password })
     });
     const result = await supabaseResponse.json();
     if (!supabaseResponse.ok) {
@@ -209,11 +278,51 @@ async function handleSignUp(request, response) {
   }
 }
 
+function formatOperatorName(user) {
+  if (!user) return 'Operator';
+  if (user.user_metadata?.full_name) return user.user_metadata.full_name;
+  if (user.user_metadata?.name) return user.user_metadata.name;
+  if (user.user_metadata?.operator_name) return user.user_metadata.operator_name;
+  if (user.email) {
+    const handle = user.email.split('@')[0];
+    const formatted = handle
+      .replace(/[._-]+/g, ' ')
+      .split(' ')
+      .filter(Boolean)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+    if (formatted) return formatted;
+  }
+  return 'Operator';
+}
+
+function formatInitials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  if (parts.length === 1 && parts[0].length >= 2) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return 'OP';
+}
+
 async function handleSession(request, response) {
   const { url, anonKey } = supabaseConfig();
   const accessToken = requestAccessToken(request);
   if (!url || !anonKey) {
-    sendJson(response, accessToken === demoSessionToken ? 200 : 401, { authenticated: accessToken === demoSessionToken, demoMode: true });
+    const isAuthed = accessToken === demoSessionToken;
+    sendJson(response, isAuthed ? 200 : 401, {
+      authenticated: isAuthed,
+      demoMode: true,
+      user: isAuthed ? {
+        id: 'demo-local-operator',
+        email: 'operator@response.team',
+        name: 'Field Operator',
+        initials: 'FO',
+        role: 'SAR Controller'
+      } : null
+    });
     return;
   }
 
@@ -224,7 +333,22 @@ async function handleSession(request, response) {
     sendJson(response, 401, { authenticated: false });
     return;
   }
-  sendJson(response, 200, { authenticated: true });
+  const user = await supabaseResponse.json();
+  const name = formatOperatorName(user);
+  const initials = formatInitials(name);
+  sendJson(response, 200, {
+    authenticated: true,
+    user: {
+      id: user.id,
+      email: user.email,
+      name,
+      initials,
+      avatarUrl: user.user_metadata?.avatar_url || null,
+      role: user.role || 'Operator',
+      createdAt: user.created_at,
+      lastSignIn: user.last_sign_in_at || user.created_at
+    }
+  });
 }
 
 async function handleReport(request, response) {
@@ -289,6 +413,18 @@ const handler = (request, response) => {
   }
   if (safeRequest.method === 'POST' && apiPath === '/auth/sign-up') {
     handleSignUp(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Registration service error.' }));
+    return;
+  }
+  if (safeRequest.method === 'POST' && apiPath === '/auth/sign-out') {
+    handleSignOut(safeRequest, safeResponse);
+    return;
+  }
+  if (safeRequest.method === 'POST' && apiPath === '/auth/recover') {
+    handleRecover(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Recovery service error.' }));
+    return;
+  }
+  if (safeRequest.method === 'POST' && apiPath === '/auth/update-password') {
+    handleUpdatePassword(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Update service error.' }));
     return;
   }
   if (safeRequest.method === 'GET' && apiPath === '/auth/session') {

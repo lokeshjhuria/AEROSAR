@@ -20,3 +20,7 @@ input { background: #f0eedf; }
 .scene-strip figcaption { margin-top: 7px; color: #d0dcde; font-size: 8px; letter-spacing: .1em; }
 @media (max-width: 800px) { .scene-strip { margin: -4px 0 22px; }.scene-strip img { height: 70px; } }
 .auth-panel-foot { border-top-color: var(--line); }
+.field-hint { display: block; font-size: 11px; line-height: 1.4; margin-top: 2px; min-height: 16px; transition: color 0.15s ease; }
+.field-hint.valid { color: #217a42; font-weight: 500; }
+.field-hint.invalid { color: #c93b32; font-weight: 500; }
+.field-hint.muted { color: var(--muted); }

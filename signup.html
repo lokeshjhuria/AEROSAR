@@ -29,10 +29,13 @@
         <form id="signUpForm" novalidate>
           <label for="operatorEmail">Operator email</label>
           <input id="operatorEmail" name="email" type="email" autocomplete="email" placeholder="operator@response.team" required>
+          <span class="field-hint muted" id="emailHint"></span>
           <label for="operatorPassword">Access key</label>
-          <input id="operatorPassword" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" minlength="6" required>
-          <label for="operatorPasswordConfirm">Confirm access key</label>
-          <input id="operatorPasswordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" placeholder="Repeat access key" minlength="6" required>
+          <div class="password-field">
+            <input id="operatorPassword" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" minlength="6" required>
+            <button type="button" id="togglePassword" aria-label="Show access key">SHOW</button>
+          </div>
+          <span class="field-hint muted" id="passwordHint">Minimum 6 characters</span>
           <button class="submit-button" type="submit">CREATE ACCOUNT <span>→</span></button>
           <p class="auth-message" id="signUpMessage" role="status" aria-live="polite"></p>
         </form>

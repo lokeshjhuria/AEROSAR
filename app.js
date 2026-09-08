@@ -1,4 +1,9 @@
-const state = { data: null, demo: new URLSearchParams(window.location.search).get('demo') === 'true', paused: false };
+const state = {
+  data: null,
+  user: null,
+  demo: new URLSearchParams(window.location.search).get('demo') === 'true',
+  paused: false
+};
 
 const bind = (key, value) => document.querySelectorAll(`[data-bind="${key}"]`).forEach((element) => { element.textContent = value ?? '--'; });
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
@@ -33,13 +38,17 @@ async function openReport() {
   const modal = document.getElementById('reportModal');
   const status = document.getElementById('reportStatus');
   const content = document.getElementById('reportContent');
-  modal.hidden = false; status.hidden = false; status.textContent = 'Loading mission records from Supabase...'; content.innerHTML = '';
+  modal.hidden = false;
+  status.hidden = false;
+  status.textContent = 'Loading mission records from Supabase...';
+  content.innerHTML = '';
   try {
     const missionId = state.data?.missionId || '';
     const response = await fetch(`/api/reports/sos?mission_id=${encodeURIComponent(missionId)}`, { headers: { Accept: 'application/json' } });
     const report = await response.json();
     if (!response.ok) throw new Error(report.error || 'Report could not be generated.');
-    status.hidden = true; renderReport(report);
+    status.hidden = true;
+    renderReport(report);
   } catch (error) {
     status.textContent = error.message;
   }
@@ -48,7 +57,8 @@ async function openReport() {
 function renderList(data) {
   document.getElementById('detectionList').innerHTML = (data.detections || []).map((item) => `<div class="detection-row"><span class="detection-icon ${item.priority.toLowerCase()}">${escapeHtml(item.icon)}</span><div class="row-copy"><strong>${escapeHtml(item.type)} <em>${escapeHtml(item.confidence)}</em></strong><small>${escapeHtml(item.location)}</small></div><span class="row-time">${escapeHtml(item.time)}</span><button class="row-menu" aria-label="Open detection actions">⋮</button></div>`).join('');
   document.getElementById('taskList').innerHTML = (data.tasks || []).map((item) => `<div class="task-row"><span class="task-icon ${item.status.toLowerCase()}">${escapeHtml(item.icon)}</span><div class="row-copy"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small></div><span class="task-status ${item.status.toLowerCase()}">${escapeHtml(item.status)}</span></div>`).join('');
-  bind('detectionCount', data.detections?.length || 0); bind('taskCount', data.tasks?.length || 0);
+  bind('detectionCount', data.detections?.length || 0);
+  bind('taskCount', data.tasks?.length || 0);
 }
 
 function renderMap(data) {
@@ -57,13 +67,50 @@ function renderMap(data) {
 
 function render(data) {
   state.data = data;
-  Object.entries(data).forEach(([key, value]) => { if (!Array.isArray(value) && typeof value !== 'object') bind(key, value); });
-  if (Number.isFinite(data.missionTimerSeconds)) bind('missionTimer', new Date(data.missionTimerSeconds * 1000).toISOString().slice(11, 19));
+  Object.entries(data).forEach(([key, value]) => {
+    if (!Array.isArray(value) && typeof value !== 'object') bind(key, value);
+  });
+
+  // Always reflect authentic operator profile
+  if (state.user) {
+    bind('operatorName', state.user.name);
+    bind('operatorInitials', state.user.initials);
+    bind('operatorEmail', state.user.email);
+  }
+
+  if (Number.isFinite(data.missionTimerSeconds)) {
+    bind('missionTimer', new Date(data.missionTimerSeconds * 1000).toISOString().slice(11, 19));
+  }
   renderMap(data);
   renderList(data);
   document.querySelector('[data-status="drone"]').className = `status-dot ${data.droneStatus === 'IN FLIGHT' ? 'live' : 'warn'}`;
   document.querySelector('[data-status="connection"]').className = `status-dot ${data.connectionStatus === 'CONNECTED' ? 'live' : 'danger'}`;
   document.querySelector('[data-status="ai"]').className = `status-dot ${data.aiStatus === 'PROCESSING' ? 'live' : 'warn'}`;
+}
+
+function openAccountModal() {
+  const modal = document.getElementById('accountModal');
+  if (!modal) return;
+  const user = state.user || {
+    name: state.data?.operatorName || 'Operator',
+    initials: state.data?.operatorInitials || 'OP',
+    email: state.data?.operatorEmail || 'operator@sar.command',
+    id: 'ACTIVE-SESSION-OPERATOR',
+    role: 'Field Command Operator'
+  };
+
+  document.getElementById('accountAvatarLarge').textContent = user.initials || 'OP';
+  document.getElementById('accountHeroName').textContent = user.name || 'Operator';
+  document.getElementById('accountDetailName').textContent = user.name || 'Operator';
+  document.getElementById('accountDetailEmail').textContent = user.email || 'operator@sar.command';
+  document.getElementById('accountDetailRole').textContent = user.role || 'Field Command Operator';
+  document.getElementById('accountDetailId').textContent = user.id || 'AUTH-SESSION-TOKEN';
+  modal.hidden = false;
+}
+
+function closeAccountModal() {
+  const modal = document.getElementById('accountModal');
+  if (modal) modal.hidden = true;
 }
 
 async function loadProductionData() {
@@ -72,9 +119,27 @@ async function loadProductionData() {
     window.location.replace('auth.html');
     throw new Error('Your operator session is required.');
   }
+  const session = await sessionResponse.json();
+  if (session.user) {
+    state.user = session.user;
+  }
+
   const response = await fetch('/api/dashboard', { headers: { Accept: 'application/json' } });
-  if (!response.ok) throw new Error(`Dashboard API returned ${response.status}`);
-  return response.json();
+  let data = response.ok ? await response.json() : {};
+
+  // If Supabase table has no mission rows yet, use baseline operational telemetry
+  if (!data || !data.missionName) {
+    data = { ...(window.AEROSAR_DEMO || {}), ...data, dataSource: 'SUPABASE / STATION LIVE' };
+  }
+
+  // Ensure operator identity is never blank
+  if (state.user) {
+    data.operatorName = state.user.name;
+    data.operatorInitials = state.user.initials;
+    data.operatorEmail = state.user.email;
+  }
+
+  return data;
 }
 
 function startLiveRefresh() {
@@ -84,8 +149,10 @@ function startLiveRefresh() {
       render(data);
     } catch (error) {
       const notice = document.getElementById('dataNotice');
-      notice.hidden = false;
-      notice.textContent = `LIVE DATA UNAVAILABLE: ${error.message}`;
+      if (notice) {
+        notice.hidden = false;
+        notice.textContent = `LIVE DATA UNAVAILABLE: ${error.message}`;
+      }
     }
   }, 10000);
 }
@@ -108,13 +175,62 @@ function startDemoClock() {
     const seconds = state.data.missionTimerSeconds;
     bind('missionTimer', new Date(seconds * 1000).toISOString().slice(11, 19));
     const pin = document.getElementById('dronePin');
-    pin.style.left = `${39 + Math.sin(seconds / 18) * 8}%`; pin.style.top = `${54 + Math.cos(seconds / 23) * 9}%`;
+    if (pin) {
+      pin.style.left = `${39 + Math.sin(seconds / 18) * 8}%`;
+      pin.style.top = `${54 + Math.cos(seconds / 23) * 9}%`;
+    }
   }, 1000);
 }
 
 function setupControls() {
+  // Operator profile card trigger
+  const operatorBlock = document.getElementById('operatorBlock');
+  if (operatorBlock) {
+    operatorBlock.addEventListener('click', (event) => {
+      if (event.target.closest('#signOutButton')) return;
+      openAccountModal();
+    });
+    operatorBlock.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openAccountModal();
+      }
+    });
+  }
+
+  const accountClose = document.getElementById('accountClose');
+  if (accountClose) accountClose.addEventListener('click', closeAccountModal);
+
+  const modalSignOut = document.getElementById('modalSignOutButton');
+  if (modalSignOut) {
+    modalSignOut.addEventListener('click', async () => {
+      await fetch('/api/auth/sign-out', { method: 'POST' });
+      window.location.replace('auth.html');
+    });
+  }
+
+  const signOutButton = document.getElementById('signOutButton');
+  if (signOutButton) {
+    signOutButton.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      await fetch('/api/auth/sign-out', { method: 'POST' });
+      window.location.replace('auth.html');
+    });
+  }
+
+  // Backdrop click listener to close modals
+  window.addEventListener('click', (event) => {
+    const accountModal = document.getElementById('accountModal');
+    if (accountModal && event.target === accountModal) closeAccountModal();
+    const reportModal = document.getElementById('reportModal');
+    if (reportModal && event.target === reportModal) reportModal.hidden = true;
+  });
+
   document.getElementById('reportButton').addEventListener('click', openReport);
-  document.getElementById('reportClose').addEventListener('click', () => { document.getElementById('reportModal').hidden = true; });
+  document.getElementById('reportClose').addEventListener('click', () => {
+    document.getElementById('reportModal').hidden = true;
+  });
+
   document.getElementById('pauseButton').addEventListener('click', async () => {
     const nextPaused = !state.paused;
     try {
@@ -127,6 +243,7 @@ function setupControls() {
       document.getElementById('dataNotice').textContent = error.message;
     }
   });
+
   document.getElementById('acknowledgeButton').addEventListener('click', async (event) => {
     try {
       await saveAction('acknowledge_all');
@@ -142,30 +259,33 @@ function setupControls() {
 async function init() {
   setupControls();
   try {
-    const data = state.demo ? window.AEROSAR_DEMO : await loadProductionData();
-    render(data);
-    if (state.demo) startDemoClock();
-    else startLiveRefresh();
+    if (state.demo) {
+      state.user = {
+        name: window.AEROSAR_DEMO?.operatorName || 'Maya Chen',
+        initials: window.AEROSAR_DEMO?.operatorInitials || 'MC',
+        email: 'maya.chen@response.team',
+        role: 'Chief Flight Controller',
+        id: 'DEMO-LOCAL-OPERATOR'
+      };
+      render(window.AEROSAR_DEMO);
+      startDemoClock();
+    } else {
+      const data = await loadProductionData();
+      render(data);
+      startLiveRefresh();
+    }
   } catch (error) {
     const notice = document.getElementById('dataNotice');
     notice.hidden = false;
     notice.innerHTML = `<strong>LIVE DATA UNAVAILABLE</strong><span>${escapeHtml(error.message)}. Connect the Supabase/API adapter or open <code>?demo=true</code> to run the isolated simulation.</span>`;
-    render({ platformName: 'AEROSAR', missionName: 'NO ACTIVE MISSION', missionLocation: 'Awaiting live telemetry', missionPhase: 'OFFLINE', missionTimer: '--:--:--', droneStatus: 'OFFLINE', connectionStatus: 'DISCONNECTED', aiStatus: 'STANDBY', operatorName: 'UNASSIGNED', operatorInitials: '--', mapMode: 'NO SIGNAL', detectionCount: 0, taskCount: 0, dataSource: 'NO CONNECTION', lastSyncFooter: '--', detections: [], tasks: [] });
+    const fallback = {
+      ...(window.AEROSAR_DEMO || {}),
+      operatorName: state.user?.name || 'Operator',
+      operatorInitials: state.user?.initials || 'OP',
+      operatorEmail: state.user?.email || 'operator@sar.command'
+    };
+    render(fallback);
   }
 }
+
 init();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

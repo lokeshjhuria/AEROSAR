@@ -23,7 +23,17 @@
         <div class="readout"><span class="eyebrow">LINK</span><strong><i class="status-dot" data-status="connection"></i><span data-bind="connectionStatus">--</span></strong></div>
         <div class="readout"><span class="eyebrow">AI CORE</span><strong><i class="status-dot" data-status="ai"></i><span data-bind="aiStatus">--</span></strong></div>
       </div>
-      <div class="operator-block"><span class="avatar" data-bind="operatorInitials">--</span><span><b data-bind="operatorName">--</b><small>OPERATOR</small></span><a class="icon-button" href="auth.html" aria-label="Open operator sign in">↗</a></div>
+      <div class="operator-block" id="operatorBlock" role="button" tabindex="0" aria-haspopup="dialog" aria-expanded="false" title="Click to view operator details">
+        <div class="avatar-wrap">
+          <span class="avatar" id="operatorAvatar" data-bind="operatorInitials">--</span>
+          <span class="avatar-badge" title="Active Station"></span>
+        </div>
+        <span class="operator-meta">
+          <b data-bind="operatorName">--</b>
+          <small><span class="operator-tag">OP</span> <span data-bind="operatorEmail">OPERATOR</span></small>
+        </span>
+        <button class="icon-button" id="signOutButton" aria-label="Sign out" title="Sign out of station">⎋</button>
+      </div>
     </header>
 
     <main id="top" class="dashboard">
@@ -65,6 +75,38 @@
     <footer class="system-footer"><span><i class="status-dot live"></i> SYSTEM OPERATIONAL</span><span>DATA SOURCE: <b data-bind="dataSource">--</b></span><span>LAST SYNC <b data-bind="lastSyncFooter">--</b></span><span class="footer-id" data-bind="missionId">--</span></footer>
   </div>
   <div class="report-modal" id="reportModal" hidden><div class="report-sheet" role="dialog" aria-modal="true" aria-labelledby="reportTitle"><div class="report-header"><div><span class="eyebrow accent-label">MISSION RECORD / SOS</span><h2 id="reportTitle">Rescue mission report</h2><p id="reportSubtitle">Awaiting report data</p></div><button class="report-close" id="reportClose" aria-label="Close report">×</button></div><div id="reportStatus" class="report-status" hidden></div><div id="reportContent" class="report-content"></div></div></div>
+  <div class="account-modal" id="accountModal" hidden>
+    <div class="account-sheet" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+      <div class="account-header">
+        <div>
+          <span class="eyebrow accent-label">STATION OPERATOR PROFILE</span>
+          <h2 id="accountTitle">Operator Account</h2>
+          <p id="accountSubtitle">Active credentials verified with Supabase</p>
+        </div>
+        <button class="account-close" id="accountClose" aria-label="Close account profile">×</button>
+      </div>
+      <div class="account-body">
+        <div class="account-profile-hero">
+          <div class="account-avatar-large" id="accountAvatarLarge">--</div>
+          <div class="account-profile-info">
+            <h3 id="accountHeroName">--</h3>
+            <span class="account-status-pill"><i class="status-dot live"></i> ONLINE &amp; AUTHENTICATED</span>
+          </div>
+        </div>
+        <dl class="account-details-list">
+          <div><dt>Operator Name</dt><dd id="accountDetailName">--</dd></div>
+          <div><dt>Email Address</dt><dd id="accountDetailEmail">--</dd></div>
+          <div><dt>Station Role</dt><dd id="accountDetailRole">Field Command Operator</dd></div>
+          <div><dt>Identity Provider</dt><dd>Supabase Cloud Auth</dd></div>
+          <div><dt>Operator UUID</dt><dd id="accountDetailId" class="monospace">--</dd></div>
+          <div><dt>Session State</dt><dd class="status-active-text">● Active Access Token</dd></div>
+        </dl>
+      </div>
+      <div class="account-footer">
+        <button class="signout-sheet-btn" id="modalSignOutButton"><span>⎋</span> SIGN OUT OF COMMAND</button>
+      </div>
+    </div>
+  </div>
   <script src="demo-data.js"></script>
   <script src="app.js"></script>
 </body>
