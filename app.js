@@ -1,3 +1,4 @@
+
 const state = {
   data: null,
   user: null,
@@ -8,6 +9,109 @@ const state = {
 const bind = (key, value) => document.querySelectorAll(`[data-bind="${key}"]`).forEach((element) => { element.textContent = value ?? '--'; });
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
 const valueOrDash = (value) => escapeHtml(value || '--');
+
+function loadRescueHistory() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('aerosar_rescue_history') || '[]');
+    return Array.isArray(stored) ? stored : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistRescueHistoryAsync(record) {
+  const entry = {
+    id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    missionId: record.missionId || state.data?.missionId || 'unknown',
+    missionName: record.missionName || state.data?.missionName || 'Unknown mission',
+    eventType: record.eventType || 'mission_event',
+    timestamp: record.timestamp || new Date().toISOString(),
+    details: record.details || {},
+    snapshot: record.snapshot || state.data || null
+  };
+
+  const history = loadRescueHistory();
+  history.push(entry);
+  const trimmed = history.slice(-200);
+  localStorage.setItem('aerosar_rescue_history', JSON.stringify(trimmed));
+  state.rescueHistory = trimmed;
+
+  fetch('/api/rescue/history', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(entry)
+  }).catch(() => {});
+
+  return entry;
+}
+
+function resolveCameraUrl() {
+  const candidate = localStorage.getItem('aerosar_drone_camera_url') || window.DRONE_CAMERA_URL || '';
+  if (candidate) return candidate.trim();
+  return '';
+}
+
+function buildCameraUrl(url) {
+  const source = url || state.cameraUrl || '/api/drone/camera?demo=true';
+  if (source.startsWith('http://') || source.startsWith('https://')) {
+    return `/api/drone/camera?url=${encodeURIComponent(source)}`;
+  }
+  return source;
+}
+
+function updateCameraStatus(isLive, label, sourceLabel = 'No source connected') {
+  const statusDot = document.getElementById('cameraStatusDot');
+  const statusLabel = document.getElementById('cameraStatusLabel');
+  const sourceText = document.getElementById('cameraStreamSource');
+  if (statusDot) {
+    statusDot.classList.toggle('live', isLive);
+    statusDot.classList.toggle('warn', !isLive);
+  }
+  if (statusLabel) statusLabel.textContent = label;
+  if (sourceText) sourceText.textContent = sourceLabel;
+}
+
+function refreshDroneCamera() {
+  const element = document.getElementById('droneCameraImage');
+  const input = document.getElementById('droneCameraUrl');
+  if (!element) return;
+
+  state.cameraUrl = resolveCameraUrl();
+  const url = buildCameraUrl(state.cameraUrl);
+  if (input && !input.value) input.value = state.cameraUrl;
+  element.src = `${url}${url.includes('?') ? '&' : '?'}ts=${Date.now()}`;
+  updateCameraStatus(Boolean(state.cameraUrl), state.cameraUrl ? 'LIVE' : 'DEMO', state.cameraUrl || 'Demo feed active');
+}
+
+function attachCameraControls() {
+  const connectButton = document.getElementById('cameraConnectButton');
+  const cameraInput = document.getElementById('droneCameraUrl');
+  const image = document.getElementById('droneCameraImage');
+
+  if (cameraInput) {
+    cameraInput.value = resolveCameraUrl();
+  }
+
+  if (connectButton) {
+    connectButton.addEventListener('click', () => {
+      const nextUrl = (cameraInput?.value || '').trim();
+      if (!nextUrl) {
+        localStorage.removeItem('aerosar_drone_camera_url');
+        state.cameraUrl = '';
+        refreshDroneCamera();
+        return;
+      }
+      state.cameraUrl = nextUrl;
+      localStorage.setItem('aerosar_drone_camera_url', nextUrl);
+      refreshDroneCamera();
+    });
+  }
+
+  if (image) {
+    image.addEventListener('load', () => updateCameraStatus(true, 'LIVE', state.cameraUrl || 'Demo feed active'));
+    image.addEventListener('error', () => updateCameraStatus(false, 'OFFLINE', 'Camera stream unavailable'));
+  }
+}
 
 function reportList(items) {
   if (!Array.isArray(items) || !items.length) return '<p class="report-empty">No records returned.</p>';
@@ -47,8 +151,15 @@ async function openReport() {
     const response = await fetch(`/api/reports/sos?mission_id=${encodeURIComponent(missionId)}`, { headers: { Accept: 'application/json' } });
     const report = await response.json();
     if (!response.ok) throw new Error(report.error || 'Report could not be generated.');
-    status.hidden = true;
-    renderReport(report);
+
+    status.hidden = true; renderReport(report);
+    persistRescueHistoryAsync({
+      eventType: 'mission_report',
+      missionId: state.data?.missionId || missionId || 'unknown',
+      missionName: state.data?.missionName || 'Unknown mission',
+      details: { reportTitle: report.mission?.name || 'SOS rescue report' },
+      snapshot: report
+    });
   } catch (error) {
     status.textContent = error.message;
   }
@@ -83,9 +194,18 @@ function render(data) {
   }
   renderMap(data);
   renderList(data);
+  const mapTitle = document.querySelector('.map-panel h2');
+  if (mapTitle) mapTitle.textContent = (data.mapMode && data.mapMode.toUpperCase() !== 'LIVE FEED') ? `${data.mapMode} search area` : 'Live search area';
   document.querySelector('[data-status="drone"]').className = `status-dot ${data.droneStatus === 'IN FLIGHT' ? 'live' : 'warn'}`;
   document.querySelector('[data-status="connection"]').className = `status-dot ${data.connectionStatus === 'CONNECTED' ? 'live' : 'danger'}`;
   document.querySelector('[data-status="ai"]').className = `status-dot ${data.aiStatus === 'PROCESSING' ? 'live' : 'warn'}`;
+  persistRescueHistoryAsync({
+    eventType: 'mission_snapshot',
+    missionId: data.missionId || state.data?.missionId || 'unknown',
+    missionName: data.missionName || 'Unknown mission',
+    details: { missionPhase: data.missionPhase || 'snapshot', dataSource: data.dataSource || 'browser' },
+    snapshot: data
+  });
 }
 
 function openAccountModal() {
@@ -166,6 +286,12 @@ async function saveAction(action, details = {}) {
   });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Mission action could not be saved.');
+  persistRescueHistoryAsync({
+    eventType: 'mission_action',
+    missionId: state.data?.missionId || 'unknown',
+    missionName: state.data?.missionName || 'Unknown mission',
+    details: { action, details }
+  });
 }
 
 function startDemoClock() {
@@ -180,6 +306,42 @@ function startDemoClock() {
       pin.style.top = `${54 + Math.cos(seconds / 23) * 9}%`;
     }
   }, 1000);
+}
+
+function openDetections() {
+  const modal = document.getElementById('detectionModal');
+  const content = document.getElementById('detectionContent');
+  if (!modal || !content) return;
+
+  const items = state.data?.detections || [];
+  if (!items.length) {
+    content.innerHTML = '<section class="report-section"><span class="eyebrow">STATUS</span><p class="report-empty">No detections are available from the current mission feed.</p></section>';
+    modal.hidden = false;
+    return;
+  }
+
+  content.innerHTML = items.map((item) => `
+    <section class="report-section">
+      <span class="eyebrow">${escapeHtml(item.type || 'DETECTION')}</span>
+      <dl>
+        <dt>Confidence</dt><dd>${valueOrDash(item.confidence)}</dd>
+        <dt>Priority</dt><dd>${valueOrDash(item.priority)}</dd>
+        <dt>Location</dt><dd>${valueOrDash(item.location)}</dd>
+        <dt>Time</dt><dd>${valueOrDash(item.time)}</dd>
+      </dl>
+    </section>
+  `).join('');
+  modal.hidden = false;
+}
+
+function toggleMapExpand() {
+  const mapPanel = document.querySelector('.map-panel');
+  if (!mapPanel) return;
+  mapPanel.classList.toggle('map-panel--expanded');
+  const button = document.getElementById('expandMapButton');
+  if (button) {
+    button.innerHTML = mapPanel.classList.contains('map-panel--expanded') ? 'COLLAPSE MAP <span>↘</span>' : 'EXPAND MAP <span>↗</span>';
+  }
 }
 
 function setupControls() {
@@ -227,10 +389,10 @@ function setupControls() {
   });
 
   document.getElementById('reportButton').addEventListener('click', openReport);
-  document.getElementById('reportClose').addEventListener('click', () => {
-    document.getElementById('reportModal').hidden = true;
-  });
-
+  document.getElementById('reportClose').addEventListener('click', () => { document.getElementById('reportModal').hidden = true; });
+  document.getElementById('detectionClose').addEventListener('click', () => { document.getElementById('detectionModal').hidden = true; });
+  document.getElementById('viewDetectionsButton').addEventListener('click', openDetections);
+  document.getElementById('expandMapButton').addEventListener('click', toggleMapExpand);
   document.getElementById('pauseButton').addEventListener('click', async () => {
     const nextPaused = !state.paused;
     try {
@@ -258,6 +420,8 @@ function setupControls() {
 
 async function init() {
   setupControls();
+  attachCameraControls();
+  refreshDroneCamera();
   try {
     if (state.demo) {
       state.user = {

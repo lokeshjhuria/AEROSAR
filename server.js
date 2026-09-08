@@ -7,6 +7,7 @@ const path = require('path');
 const port = Number(process.env.PORT || 8000);
 const root = process.cwd();
 const demoSessionToken = 'demo-local-session';
+const rescueHistoryFile = path.resolve(root, 'rescue-history.json');
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -376,6 +377,130 @@ async function handleReport(request, response) {
   sendJson(response, 200, Array.isArray(result) ? result[0] || {} : result);
 }
 
+async function handleDroneCamera(request, response) {
+  const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+  const cameraFromQuery = requestUrl.searchParams.get('url');
+  const cameraUrl = cameraFromQuery || process.env.DRONE_CAMERA_URL || '';
+  const fallback = 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=1200&q=80';
+  const remoteUrl = cameraUrl || (requestUrl.searchParams.get('demo') === 'true' ? fallback : '');
+
+  if (!remoteUrl) {
+    if (!response.headersSent) {
+      sendJson(response, 503, { error: 'No drone camera URL is configured. Set DRONE_CAMERA_URL or connect a stream manually.' });
+    }
+    return;
+  }
+
+  try {
+    const streamResponse = await fetch(remoteUrl, {
+      headers: { Accept: 'image/jpeg,image/png,image/webp,image/*,multipart/x-mixed-replace;boundary=--jpg' }
+    });
+
+    if (!streamResponse.ok) {
+      if (!response.headersSent) {
+        sendJson(response, 502, { error: 'Drone camera stream is unreachable.' });
+      }
+      return;
+    }
+
+    const contentType = streamResponse.headers.get('content-type') || 'image/jpeg';
+    if (!response.headersSent) {
+      response.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0'
+      });
+    }
+
+    if (streamResponse.body) {
+      streamResponse.body.on('error', () => {
+        if (!response.writableEnded) {
+          response.destroy();
+        }
+      });
+      streamResponse.body.pipe(response);
+      return;
+    }
+
+    const buffer = Buffer.from(await streamResponse.arrayBuffer());
+    response.end(buffer);
+  } catch {
+    try {
+      const fallbackResponse = await fetch(fallback);
+      const fallbackBuffer = Buffer.from(await fallbackResponse.arrayBuffer());
+      if (!response.headersSent) {
+        response.writeHead(200, {
+          'Content-Type': fallbackResponse.headers.get('content-type') || 'image/jpeg',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0'
+        });
+      }
+      response.end(fallbackBuffer);
+    } catch {
+      if (!response.headersSent) {
+        sendJson(response, 503, { error: 'Drone camera stream is unavailable.' });
+      } else {
+        response.end();
+      }
+    }
+  }
+}
+
+function readRescueHistory() {
+  try {
+    if (!fs.existsSync(rescueHistoryFile)) {
+      fs.writeFileSync(rescueHistoryFile, JSON.stringify([], null, 2));
+      return [];
+    }
+    const raw = fs.readFileSync(rescueHistoryFile, 'utf8');
+    const parsed = JSON.parse(raw || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRescueHistory(records) {
+  const nextRecords = Array.isArray(records) ? records : [];
+  fs.writeFileSync(rescueHistoryFile, JSON.stringify(nextRecords, null, 2));
+  return nextRecords;
+}
+
+async function handleRescueHistory(request, response) {
+  const method = request.method || 'GET';
+  if (method === 'GET') {
+    sendJson(response, 200, readRescueHistory());
+    return;
+  }
+
+  if (method === 'POST') {
+    try {
+      const payload = await readJson(request);
+      const entry = {
+        id: payload?.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        missionId: payload?.missionId || 'unknown',
+        missionName: payload?.missionName || 'Unknown mission',
+        eventType: payload?.eventType || 'mission_event',
+        timestamp: payload?.timestamp || new Date().toISOString(),
+        details: payload?.details || {},
+        snapshot: payload?.snapshot || null
+      };
+      const history = readRescueHistory();
+      const nextHistory = [...history, entry].slice(-200);
+      writeRescueHistory(nextHistory);
+      sendJson(response, 200, { saved: true, total: nextHistory.length });
+      return;
+    } catch {
+      sendJson(response, 400, { error: 'Rescue history payload could not be stored.' });
+      return;
+    }
+  }
+
+  sendJson(response, 405, { error: 'Method not allowed.' });
+}
+
 const handler = (request, response) => {
   const safeRequest = request || {};
   const safeResponse = response || {
@@ -433,6 +558,14 @@ const handler = (request, response) => {
   }
   if (safeRequest.method === 'GET' && apiPath === '/reports/sos') {
     handleReport(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Report service error.' }));
+    return;
+  }
+  if (safeRequest.method === 'GET' && apiPath === '/drone/camera') {
+    handleDroneCamera(safeRequest, safeResponse).catch(() => sendJson(safeResponse, 500, { error: 'Drone camera service error.' }));
+    return;
+  }
+  if ((safeRequest.method === 'GET' || safeRequest.method === 'POST') && apiPath === '/rescue/history') {
+    handleRescueHistory(safeRequest, safeResponse);
     return;
   }
 
