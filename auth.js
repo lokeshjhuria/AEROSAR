@@ -70,6 +70,7 @@ if (recoveryToken && hashType === 'recovery') {
     try {
       const response = await fetch('/api/auth/sign-in', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ 
           email: signInForm.email.value.trim().toLowerCase(), 
@@ -77,9 +78,10 @@ if (recoveryToken && hashType === 'recovery') {
           remember: signInForm.remember.checked 
         })
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || 'Sign-in failed.');
-      window.location.assign('index.html');
+      if (!result.authenticated) throw new Error('Sign-in was not authenticated.');
+      window.location.assign('/index.html');
     } catch (error) {
       authMessage.textContent = error.message;
     }
