@@ -541,7 +541,7 @@ async function handleRescueHistory(request, response) {
   sendJson(response, 405, { error: 'Method not allowed.' });
 }
 
-const handler = async (request, response) => {
+const handler = async (request, response, routeOverride) => {
   const safeRequest = request || {};
   const safeResponse = response || {
     setHeader() {},
@@ -552,8 +552,13 @@ const handler = async (request, response) => {
 
   try {
     const requestUrl = new URL(safeRequest.url || '/', `http://${safeRequest.headers?.host || 'localhost'}`);
-    const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
-    let apiPath = routePath.startsWith('/api/') ? routePath.slice(4) : routePath;
+    let apiPath;
+    if (routeOverride) {
+      apiPath = routeOverride.startsWith('/') ? routeOverride : `/${routeOverride}`;
+    } else {
+      const routePath = requestUrl.searchParams.get('__route') || requestUrl.pathname;
+      apiPath = routePath.startsWith('/api/') ? routePath.slice(4) : routePath;
+    }
     if (apiPath.length > 1 && apiPath.endsWith('/')) {
       apiPath = apiPath.slice(0, -1);
     }
