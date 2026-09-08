@@ -39,9 +39,11 @@ function getEnvValue(...keys) {
 function supabaseConfig() {
   const url = getEnvValue('SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL');
   const anonKey = getEnvValue('SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  const reportsEndpoint = getEnvValue('SUPABASE_REPORTS_ENDPOINT');
   return {
     url: isConfiguredSupabaseValue(url) ? url.replace(/\/$/, '') : '',
-    anonKey: isConfiguredSupabaseValue(anonKey) ? anonKey : ''
+    anonKey: isConfiguredSupabaseValue(anonKey) ? anonKey : '',
+    reportsEndpoint: isConfiguredSupabaseValue(reportsEndpoint) ? reportsEndpoint : ''
   };
 }
 
@@ -353,9 +355,9 @@ async function handleSession(request, response) {
 }
 
 async function handleReport(request, response) {
-  const { anonKey } = supabaseConfig();
+  const { anonKey, reportsEndpoint } = supabaseConfig();
   const accessToken = requestAccessToken(request);
-  if (!process.env.SUPABASE_REPORTS_ENDPOINT || !anonKey) {
+  if (!reportsEndpoint || !anonKey) {
     sendJson(response, 503, { error: 'SOS reports are not configured. Set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_REPORTS_ENDPOINT.' });
     return;
   }
@@ -366,7 +368,7 @@ async function handleReport(request, response) {
     return;
   }
 
-  const reportUrl = new URL(process.env.SUPABASE_REPORTS_ENDPOINT);
+  const reportUrl = new URL(reportsEndpoint);
   reportUrl.searchParams.set('mission_id', `eq.${missionId}`);
   const supabaseResponse = await fetch(reportUrl, { headers: supabaseHeaders(anonKey, { Accept: 'application/json', ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) }) });
   const result = await supabaseResponse.json();
@@ -518,7 +520,7 @@ const handler = (request, response) => {
       ok: true,
       supabase: Boolean(supabaseConfig().url && supabaseConfig().anonKey),
       dashboard: Boolean(process.env.SUPABASE_DASHBOARD_ENDPOINT),
-      reports: Boolean(process.env.SUPABASE_REPORTS_ENDPOINT),
+      reports: Boolean(supabaseConfig().reportsEndpoint),
       actions: Boolean(process.env.SUPABASE_ACTIONS_ENDPOINT)
     });
     return;
