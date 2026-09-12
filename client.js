@@ -261,7 +261,10 @@ async function openReport() {
 }
 
 function renderList(data) {
-  document.getElementById('detectionList').innerHTML = (data.detections || []).map((item) => `<div class="detection-row"><span class="detection-icon ${item.priority.toLowerCase()}">${escapeHtml(item.icon)}</span><div class="row-copy"><strong>${escapeHtml(item.type)} <em>${escapeHtml(item.confidence)}</em></strong><small>${escapeHtml(item.location)}</small></div><span class="row-time">${escapeHtml(item.time)}</span><button class="row-menu" aria-label="Open detection actions">⋮</button></div>`).join('');
+  document.getElementById('detectionList').innerHTML = (data.detections || []).map((item, index) => {
+    const priority = String(item.priority || 'REVIEW').toLowerCase();
+    return `<div class="detection-row"><span class="detection-icon ${escapeHtml(priority)}">${escapeHtml(item.icon || '•')}</span><div class="row-copy"><strong>${escapeHtml(item.type || 'DETECTION')} <em>${escapeHtml(item.confidence || '--')}</em></strong><small>${escapeHtml(item.location || 'Location unavailable')}</small></div><span class="row-time">${escapeHtml(item.time || 'Just now')}</span><button class="row-menu" type="button" data-detection-index="${index}" aria-label="Open ${escapeHtml(item.type || 'detection')} details">⋮</button></div>`;
+  }).join('');
   document.getElementById('taskList').innerHTML = (data.tasks || []).map((item) => {
     const status = String(item.status || 'PENDING').toUpperCase();
     const isAcknowledged = status === 'ACKNOWLEDGED';
@@ -413,7 +416,7 @@ function startDemoClock() {
   }, 1000);
 }
 
-function openDetections() {
+function openDetections(selectedIndex = null) {
   const modal = document.getElementById('detectionModal');
   const content = document.getElementById('detectionContent');
   if (!modal || !content) return;
@@ -425,7 +428,8 @@ function openDetections() {
     return;
   }
 
-  content.innerHTML = items.map((item) => `
+  const visibleItems = selectedIndex === null || !items[selectedIndex] ? items : [items[selectedIndex]];
+  content.innerHTML = visibleItems.map((item) => `
     <section class="report-section">
       <span class="eyebrow">${escapeHtml(item.type || 'DETECTION')}</span>
       <dl>
@@ -501,6 +505,11 @@ function setupControls() {
   if (detectionClose) detectionClose.addEventListener('click', () => { document.getElementById('detectionModal').hidden = true; });
   const viewDetectionsButton = document.getElementById('viewDetectionsButton');
   if (viewDetectionsButton) viewDetectionsButton.addEventListener('click', openDetections);
+  const detectionList = document.getElementById('detectionList');
+  if (detectionList) detectionList.addEventListener('click', (event) => {
+    const actionButton = event.target.closest('[data-detection-index]');
+    if (actionButton) openDetections(Number(actionButton.dataset.detectionIndex));
+  });
   const expandMapButton = document.getElementById('expandMapButton');
   if (expandMapButton) expandMapButton.addEventListener('click', toggleMapExpand);
   const pauseButton = document.getElementById('pauseButton');
