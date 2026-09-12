@@ -393,6 +393,15 @@ async function saveAction(action, details = {}) {
     body: JSON.stringify({ mission_id: state.data?.missionId, action, details })
   });
   const result = await response.json();
+  if (response.status === 503) {
+    persistRescueHistoryAsync({
+      eventType: 'mission_action_local',
+      missionId: state.data?.missionId || 'unknown',
+      missionName: state.data?.missionName || 'Unknown mission',
+      details: { action, details, storage: 'browser-local-fallback' }
+    });
+    return { saved: false, local: true };
+  }
   if (!response.ok) throw new Error(result.error || 'Mission action could not be saved.');
   persistRescueHistoryAsync({
     eventType: 'mission_action',
