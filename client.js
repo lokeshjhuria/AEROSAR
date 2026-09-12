@@ -63,6 +63,11 @@ function buildCameraUrl(url) {
   return source;
 }
 
+const demoCameraFrames = [
+  'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=1600&q=85',
+  'https://images.unsplash.com/photo-1527482797697-8795b05a13fe?auto=format&fit=crop&w=1600&q=85'
+];
+
 function updateCameraStatus(isLive, label, sourceLabel = 'No source connected') {
   const statusDot = document.getElementById('cameraStatusDot');
   const statusLabel = document.getElementById('cameraStatusLabel');
@@ -81,10 +86,12 @@ function refreshDroneCamera() {
   if (!element) return;
 
   state.cameraUrl = resolveCameraUrl();
-  const url = buildCameraUrl(state.cameraUrl);
+  const url = state.cameraUrl
+    ? buildCameraUrl(state.cameraUrl)
+    : `${demoCameraFrames[state.demoCameraFrame || 0]}&frame=${state.demoCameraFrame || 0}`;
   if (input && !input.value) input.value = state.cameraUrl;
   element.src = `${url}${url.includes('?') ? '&' : '?'}ts=${Date.now()}`;
-  updateCameraStatus(Boolean(state.cameraUrl), state.cameraUrl ? 'LIVE' : 'DEMO', state.cameraUrl || 'Demo feed active');
+  updateCameraStatus(Boolean(state.cameraUrl), state.cameraUrl ? 'LIVE' : 'DEMO', state.cameraUrl || 'Demo aerial feed / frame 1 of 2');
 }
 
 function attachCameraControls() {
@@ -115,6 +122,14 @@ function attachCameraControls() {
     image.addEventListener('load', () => updateCameraStatus(true, 'LIVE', state.cameraUrl || 'Demo feed active'));
     image.addEventListener('error', () => updateCameraStatus(false, 'OFFLINE', 'Camera stream unavailable'));
   }
+
+  window.setInterval(() => {
+    if (!state.cameraUrl) {
+      state.demoCameraFrame = ((state.demoCameraFrame || 0) + 1) % demoCameraFrames.length;
+      refreshDroneCamera();
+      updateCameraStatus(true, 'DEMO', `Demo aerial feed / frame ${state.demoCameraFrame + 1} of ${demoCameraFrames.length}`);
+    }
+  }, 8000);
 }
 
 function reportList(items) {
@@ -247,9 +262,19 @@ async function openReport() {
 
 function renderList(data) {
   document.getElementById('detectionList').innerHTML = (data.detections || []).map((item) => `<div class="detection-row"><span class="detection-icon ${item.priority.toLowerCase()}">${escapeHtml(item.icon)}</span><div class="row-copy"><strong>${escapeHtml(item.type)} <em>${escapeHtml(item.confidence)}</em></strong><small>${escapeHtml(item.location)}</small></div><span class="row-time">${escapeHtml(item.time)}</span><button class="row-menu" aria-label="Open detection actions">⋮</button></div>`).join('');
-  document.getElementById('taskList').innerHTML = (data.tasks || []).map((item) => `<div class="task-row"><span class="task-icon ${item.status.toLowerCase()}">${escapeHtml(item.icon)}</span><div class="row-copy"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small></div><span class="task-status ${item.status.toLowerCase()}">${escapeHtml(item.status)}</span></div>`).join('');
+  document.getElementById('taskList').innerHTML = (data.tasks || []).map((item) => {
+    const status = String(item.status || 'PENDING').toUpperCase();
+    const isAcknowledged = status === 'ACKNOWLEDGED';
+    return `<div class="task-row${isAcknowledged ? ' task-row--acknowledged' : ''}"><span class="task-icon ${status.toLowerCase()}">${isAcknowledged ? '✓' : escapeHtml(item.icon || '?')}</span><div class="row-copy"><strong>${escapeHtml(item.title || 'Team action')}</strong><small>${escapeHtml(item.detail || 'Awaiting response')}</small></div><span class="task-status ${status.toLowerCase()}">${escapeHtml(status)}</span></div>`;
+  }).join('');
   bind('detectionCount', data.detections?.length || 0);
-  bind('taskCount', data.tasks?.length || 0);
+  bind('taskCount', (data.tasks || []).filter((item) => String(item.status || '').toUpperCase() !== 'ACKNOWLEDGED').length);
+}
+
+function acknowledgeTasks() {
+  if (!state.data) return;
+  state.data.tasks = (state.data.tasks || []).map((task) => ({ ...task, status: 'ACKNOWLEDGED' }));
+  renderList(state.data);
 }
 
 function renderMap(data) {
@@ -506,14 +531,20 @@ function setupControls() {
 
   const acknowledgeButton = document.getElementById('acknowledgeButton');
   if (acknowledgeButton) acknowledgeButton.addEventListener('click', async (event) => {
+    if (acknowledgeButton.disabled) return;
+    acknowledgeButton.disabled = true;
+    acknowledgeButton.setAttribute('aria-busy', 'true');
     try {
       await saveAction('acknowledge_all');
+      acknowledgeTasks();
       event.currentTarget.textContent = 'ALL ACTIONS ACKNOWLEDGED ✓';
       event.currentTarget.classList.add('acknowledged');
     } catch (error) {
       document.getElementById('dataNotice').hidden = false;
       document.getElementById('dataNotice').textContent = error.message;
+      acknowledgeButton.disabled = false;
     }
+    acknowledgeButton.removeAttribute('aria-busy');
   });
 }
 
