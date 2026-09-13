@@ -6,5 +6,8 @@
     "api/**/*.js": {
       "includeFiles": "*.{html,css,js,json,png,jpg,svg}"
     }
-  }
+  },
+  "routes": [
+    { "src": "/", "dest": "/auth.html" }
+  ]
 }
