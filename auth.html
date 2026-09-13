@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0c1114">
+  <meta name="theme-color" content="#0c1114">  
   <title>AEROSAR | Operator Sign In</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +18,12 @@
         <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
         <span><strong>AEROSAR</strong><small>SEARCH &amp; RESCUE / COMMAND</small></span>
       </a>
-      <div class="visual-caption"><span class="eyebrow">FIELD OPERATIONS PLATFORM</span><h1>Eyes on the horizon.<br><em>Teams in motion.</em></h1><p>Secure access for the people coordinating the next response.</p></div>
-      <div class="scene-strip" aria-label="Rescue operation imagery"><figure><img src="https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=700&q=82" alt="Flooded landscape viewed from above"><figcaption>FLOOD / AERIAL SURVEY</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1523867574998-1a336b6ded04?auto=format&fit=crop&w=700&q=82" alt="Emergency responders working near a fire"><figcaption>FIRE / RESPONSE TEAM</figcaption></figure><figure><img src="https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=700&q=82" alt="Drone used for aerial reconnaissance"><figcaption>DRONE / RECON</figcaption></figure></div>
+      <div class="mission-board">
+        <div class="mission-board-top"><span class="eyebrow"><i class="status-dot live"></i> ACTIVE SEARCH &amp; RESCUE DEPLOYMENTS</span><button id="missionPauseButton" class="mission-pause" type="button">Ⅱ PAUSE</button></div>
+        <h1>Autonomous Drone Rescue in <em>Floods, Wildfires &amp; Mountain Evacuations</em></h1>
+        <div class="mission-feature"><img id="missionFeatureImage" src="https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&amp;fit=crop&amp;w=1400&amp;q=88" alt="Flood disaster viewed from above"><div class="mission-feature-label"><span class="eyebrow">CURRENT DEPLOYMENT</span><strong id="missionFeatureTitle">FLOOD RESCUE</strong></div></div>
+        <div class="mission-tabs" role="tablist" aria-label="Mission previews"><button class="mission-tab is-active" type="button" data-mission="flood" role="tab" aria-selected="true"><span>MISSION 01</span>Flood Rescue</button><button class="mission-tab" type="button" data-mission="fire" role="tab" aria-selected="false"><span>MISSION 02</span>Wildfire FLIR</button><button class="mission-tab" type="button" data-mission="medical" role="tab" aria-selected="false"><span>MISSION 03</span>Medical Airlift</button></div>
+      </div>
       <div class="visual-foot"><span>PHOTO / FIELD OPERATIONS</span><span class="visual-rule"></span><span>01 / 02</span></div>
     </section>
 
@@ -37,6 +41,7 @@
           <div class="form-options"><label class="check-option"><input type="checkbox" name="remember"><span>Remember this station</span></label><a href="recover.html">Recover access</a></div>
           <button class="submit-button" type="submit">ENTER COMMAND <span>→</span></button>
           <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
+          <a class="demo-access" href="index.html?demo=true">OPEN SIMULATION COMMAND <span>↗</span></a>
           <p class="auth-message">New operator? <a href="signup.html">Create an account</a></p>
         </form>
       </div>

@@ -1,5 +1,54 @@
+const missionPreviews = {
+  flood: {
+    title: 'FLOOD RESCUE',
+    image: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=1400&q=88',
+    alt: 'Flood disaster viewed from above'
+  },
+  fire: {
+    title: 'WILDFIRE FLIR',
+    image: 'https://images.unsplash.com/photo-1523867574998-1a336b6ded04?auto=format&fit=crop&w=1400&q=88',
+    alt: 'Emergency responders working near a wildfire'
+  },
+  medical: {
+    title: 'MEDICAL AIRLIFT',
+    image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&w=1400&q=88',
+    alt: 'Drone prepared for aerial reconnaissance'
+  }
+};
+
+function setupMissionPreview() {
+  const image = document.getElementById('missionFeatureImage');
+  const title = document.getElementById('missionFeatureTitle');
+  const pauseButton = document.getElementById('missionPauseButton');
+  let paused = false;
+
+  document.querySelectorAll('[data-mission]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const mission = missionPreviews[button.dataset.mission];
+      if (!mission || !image || !title) return;
+      image.src = mission.image;
+      image.alt = mission.alt;
+      title.textContent = mission.title;
+      document.querySelectorAll('[data-mission]').forEach((tab) => {
+        const active = tab === button;
+        tab.classList.toggle('is-active', active);
+        tab.setAttribute('aria-selected', String(active));
+      });
+    });
+  });
+
+  if (pauseButton) {
+    pauseButton.addEventListener('click', () => {
+      paused = !paused;
+      pauseButton.textContent = paused ? '▶ RESUME' : 'Ⅱ PAUSE';
+    });
+  }
+}
+
 (function () {
   if (typeof window === 'undefined') return;
+
+  setupMissionPreview();
 
   const hash = window.location.hash.substring(1);
   const params = new URLSearchParams(hash);

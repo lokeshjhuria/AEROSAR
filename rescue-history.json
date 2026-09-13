@@ -1,821 +1,5 @@
 [
   {
-    "id": "5e8219ee-8b54-4bc2-ae87-609e237c04ef",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "mission_snapshot",
-    "timestamp": "2026-09-08T09:08:26.643Z",
-    "details": {
-      "missionPhase": "SEARCH IN PROGRESS",
-      "dataSource": "SUPABASE / STATION LIVE"
-    },
-    "snapshot": {
-      "platformName": "AEROSAR",
-      "missionName": "Operation Northstar",
-      "missionId": "OP-NSTAR-042",
-      "missionLocation": "Kullu Valley / Sector 07",
-      "missionPhase": "SEARCH IN PROGRESS",
-      "missionTimerSeconds": 7428,
-      "droneId": "DR-01",
-      "mapSectors": [
-        {
-          "label": "SECTOR A",
-          "className": "zone-a"
-        },
-        {
-          "label": "SECTOR B",
-          "className": "zone-b"
-        },
-        {
-          "label": "SECTOR C",
-          "className": "zone-c"
-        }
-      ],
-      "droneStatus": "IN FLIGHT",
-      "connectionStatus": "CONNECTED",
-      "aiStatus": "PROCESSING",
-      "operatorName": "Lokeshjhuria7",
-      "operatorInitials": "LO",
-      "mapMode": "LIVE FEED",
-      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
-      "droneModel": "MAV-X4",
-      "battery": "68%",
-      "batteryTime": "24 MIN REMAINING",
-      "altitude": "142 M",
-      "speed": "18.4 KM/H",
-      "temperature": "16°C",
-      "weather": "CLEAR",
-      "flightTime": "01:18:42",
-      "gpsStatus": "3D FIX",
-      "heading": "NNE 024°",
-      "lastInference": "UPDATED 12 SEC AGO",
-      "lastSync": "12 SEC AGO",
-      "dataSource": "SUPABASE / STATION LIVE",
-      "lastSyncFooter": "12 SEC AGO",
-      "detections": [
-        {
-          "type": "PERSON",
-          "confidence": "94%",
-          "location": "Sector B / 240 m",
-          "time": "12 sec ago",
-          "priority": "HIGH",
-          "icon": "●"
-        },
-        {
-          "type": "THERMAL ANOMALY",
-          "confidence": "81%",
-          "location": "Sector A / 518 m",
-          "time": "48 sec ago",
-          "priority": "REVIEW",
-          "icon": "◉"
-        },
-        {
-          "type": "VEHICLE",
-          "confidence": "76%",
-          "location": "Sector C / 102 m",
-          "time": "2 min ago",
-          "priority": "LOW",
-          "icon": "□"
-        }
-      ],
-      "tasks": [
-        {
-          "title": "Review person detection",
-          "detail": "Sector B / confidence 94%",
-          "status": "URGENT",
-          "icon": "!"
-        },
-        {
-          "title": "Dispatch ground team",
-          "detail": "Waypoint B-04 ready",
-          "status": "READY",
-          "icon": "↗"
-        },
-        {
-          "title": "Confirm thermal anomaly",
-          "detail": "Sector A / confidence 81%",
-          "status": "PENDING",
-          "icon": "?"
-        }
-      ],
-      "operatorEmail": "lokeshjhuria7@gmail.com"
-    }
-  },
-  {
-    "id": "d90762e5-9778-4e54-a00a-6798212b1cdd",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "mission_snapshot",
-    "timestamp": "2026-09-08T09:08:36.576Z",
-    "details": {
-      "missionPhase": "SEARCH IN PROGRESS",
-      "dataSource": "SUPABASE / STATION LIVE"
-    },
-    "snapshot": {
-      "platformName": "AEROSAR",
-      "missionName": "Operation Northstar",
-      "missionId": "OP-NSTAR-042",
-      "missionLocation": "Kullu Valley / Sector 07",
-      "missionPhase": "SEARCH IN PROGRESS",
-      "missionTimerSeconds": 7428,
-      "droneId": "DR-01",
-      "mapSectors": [
-        {
-          "label": "SECTOR A",
-          "className": "zone-a"
-        },
-        {
-          "label": "SECTOR B",
-          "className": "zone-b"
-        },
-        {
-          "label": "SECTOR C",
-          "className": "zone-c"
-        }
-      ],
-      "droneStatus": "IN FLIGHT",
-      "connectionStatus": "CONNECTED",
-      "aiStatus": "PROCESSING",
-      "operatorName": "Lokeshjhuria7",
-      "operatorInitials": "LO",
-      "mapMode": "LIVE FEED",
-      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
-      "droneModel": "MAV-X4",
-      "battery": "68%",
-      "batteryTime": "24 MIN REMAINING",
-      "altitude": "142 M",
-      "speed": "18.4 KM/H",
-      "temperature": "16°C",
-      "weather": "CLEAR",
-      "flightTime": "01:18:42",
-      "gpsStatus": "3D FIX",
-      "heading": "NNE 024°",
-      "lastInference": "UPDATED 12 SEC AGO",
-      "lastSync": "12 SEC AGO",
-      "dataSource": "SUPABASE / STATION LIVE",
-      "lastSyncFooter": "12 SEC AGO",
-      "detections": [
-        {
-          "type": "PERSON",
-          "confidence": "94%",
-          "location": "Sector B / 240 m",
-          "time": "12 sec ago",
-          "priority": "HIGH",
-          "icon": "●"
-        },
-        {
-          "type": "THERMAL ANOMALY",
-          "confidence": "81%",
-          "location": "Sector A / 518 m",
-          "time": "48 sec ago",
-          "priority": "REVIEW",
-          "icon": "◉"
-        },
-        {
-          "type": "VEHICLE",
-          "confidence": "76%",
-          "location": "Sector C / 102 m",
-          "time": "2 min ago",
-          "priority": "LOW",
-          "icon": "□"
-        }
-      ],
-      "tasks": [
-        {
-          "title": "Review person detection",
-          "detail": "Sector B / confidence 94%",
-          "status": "URGENT",
-          "icon": "!"
-        },
-        {
-          "title": "Dispatch ground team",
-          "detail": "Waypoint B-04 ready",
-          "status": "READY",
-          "icon": "↗"
-        },
-        {
-          "title": "Confirm thermal anomaly",
-          "detail": "Sector A / confidence 81%",
-          "status": "PENDING",
-          "icon": "?"
-        }
-      ],
-      "operatorEmail": "lokeshjhuria7@gmail.com"
-    }
-  },
-  {
-    "id": "da6adcd9-07fb-4b27-bc3e-5faf960ce102",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "mission_snapshot",
-    "timestamp": "2026-09-08T09:08:46.713Z",
-    "details": {
-      "missionPhase": "SEARCH IN PROGRESS",
-      "dataSource": "SUPABASE / STATION LIVE"
-    },
-    "snapshot": {
-      "platformName": "AEROSAR",
-      "missionName": "Operation Northstar",
-      "missionId": "OP-NSTAR-042",
-      "missionLocation": "Kullu Valley / Sector 07",
-      "missionPhase": "SEARCH IN PROGRESS",
-      "missionTimerSeconds": 7428,
-      "droneId": "DR-01",
-      "mapSectors": [
-        {
-          "label": "SECTOR A",
-          "className": "zone-a"
-        },
-        {
-          "label": "SECTOR B",
-          "className": "zone-b"
-        },
-        {
-          "label": "SECTOR C",
-          "className": "zone-c"
-        }
-      ],
-      "droneStatus": "IN FLIGHT",
-      "connectionStatus": "CONNECTED",
-      "aiStatus": "PROCESSING",
-      "operatorName": "Lokeshjhuria7",
-      "operatorInitials": "LO",
-      "mapMode": "LIVE FEED",
-      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
-      "droneModel": "MAV-X4",
-      "battery": "68%",
-      "batteryTime": "24 MIN REMAINING",
-      "altitude": "142 M",
-      "speed": "18.4 KM/H",
-      "temperature": "16°C",
-      "weather": "CLEAR",
-      "flightTime": "01:18:42",
-      "gpsStatus": "3D FIX",
-      "heading": "NNE 024°",
-      "lastInference": "UPDATED 12 SEC AGO",
-      "lastSync": "12 SEC AGO",
-      "dataSource": "SUPABASE / STATION LIVE",
-      "lastSyncFooter": "12 SEC AGO",
-      "detections": [
-        {
-          "type": "PERSON",
-          "confidence": "94%",
-          "location": "Sector B / 240 m",
-          "time": "12 sec ago",
-          "priority": "HIGH",
-          "icon": "●"
-        },
-        {
-          "type": "THERMAL ANOMALY",
-          "confidence": "81%",
-          "location": "Sector A / 518 m",
-          "time": "48 sec ago",
-          "priority": "REVIEW",
-          "icon": "◉"
-        },
-        {
-          "type": "VEHICLE",
-          "confidence": "76%",
-          "location": "Sector C / 102 m",
-          "time": "2 min ago",
-          "priority": "LOW",
-          "icon": "□"
-        }
-      ],
-      "tasks": [
-        {
-          "title": "Review person detection",
-          "detail": "Sector B / confidence 94%",
-          "status": "URGENT",
-          "icon": "!"
-        },
-        {
-          "title": "Dispatch ground team",
-          "detail": "Waypoint B-04 ready",
-          "status": "READY",
-          "icon": "↗"
-        },
-        {
-          "title": "Confirm thermal anomaly",
-          "detail": "Sector A / confidence 81%",
-          "status": "PENDING",
-          "icon": "?"
-        }
-      ],
-      "operatorEmail": "lokeshjhuria7@gmail.com"
-    }
-  },
-  {
-    "id": "005fa2ce-9e89-468e-b9ff-204d669cfb17",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "mission_snapshot",
-    "timestamp": "2026-09-08T09:08:56.485Z",
-    "details": {
-      "missionPhase": "SEARCH IN PROGRESS",
-      "dataSource": "SUPABASE / STATION LIVE"
-    },
-    "snapshot": {
-      "platformName": "AEROSAR",
-      "missionName": "Operation Northstar",
-      "missionId": "OP-NSTAR-042",
-      "missionLocation": "Kullu Valley / Sector 07",
-      "missionPhase": "SEARCH IN PROGRESS",
-      "missionTimerSeconds": 7428,
-      "droneId": "DR-01",
-      "mapSectors": [
-        {
-          "label": "SECTOR A",
-          "className": "zone-a"
-        },
-        {
-          "label": "SECTOR B",
-          "className": "zone-b"
-        },
-        {
-          "label": "SECTOR C",
-          "className": "zone-c"
-        }
-      ],
-      "droneStatus": "IN FLIGHT",
-      "connectionStatus": "CONNECTED",
-      "aiStatus": "PROCESSING",
-      "operatorName": "Lokeshjhuria7",
-      "operatorInitials": "LO",
-      "mapMode": "LIVE FEED",
-      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
-      "droneModel": "MAV-X4",
-      "battery": "68%",
-      "batteryTime": "24 MIN REMAINING",
-      "altitude": "142 M",
-      "speed": "18.4 KM/H",
-      "temperature": "16°C",
-      "weather": "CLEAR",
-      "flightTime": "01:18:42",
-      "gpsStatus": "3D FIX",
-      "heading": "NNE 024°",
-      "lastInference": "UPDATED 12 SEC AGO",
-      "lastSync": "12 SEC AGO",
-      "dataSource": "SUPABASE / STATION LIVE",
-      "lastSyncFooter": "12 SEC AGO",
-      "detections": [
-        {
-          "type": "PERSON",
-          "confidence": "94%",
-          "location": "Sector B / 240 m",
-          "time": "12 sec ago",
-          "priority": "HIGH",
-          "icon": "●"
-        },
-        {
-          "type": "THERMAL ANOMALY",
-          "confidence": "81%",
-          "location": "Sector A / 518 m",
-          "time": "48 sec ago",
-          "priority": "REVIEW",
-          "icon": "◉"
-        },
-        {
-          "type": "VEHICLE",
-          "confidence": "76%",
-          "location": "Sector C / 102 m",
-          "time": "2 min ago",
-          "priority": "LOW",
-          "icon": "□"
-        }
-      ],
-      "tasks": [
-        {
-          "title": "Review person detection",
-          "detail": "Sector B / confidence 94%",
-          "status": "URGENT",
-          "icon": "!"
-        },
-        {
-          "title": "Dispatch ground team",
-          "detail": "Waypoint B-04 ready",
-          "status": "READY",
-          "icon": "↗"
-        },
-        {
-          "title": "Confirm thermal anomaly",
-          "detail": "Sector A / confidence 81%",
-          "status": "PENDING",
-          "icon": "?"
-        }
-      ],
-      "operatorEmail": "lokeshjhuria7@gmail.com"
-    }
-  },
-  {
-    "id": "ae5b11f8-4c0a-4a73-8b9f-8cfcc442707b",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "mission_snapshot",
-    "timestamp": "2026-09-08T09:09:06.485Z",
-    "details": {
-      "missionPhase": "SEARCH IN PROGRESS",
-      "dataSource": "SUPABASE / STATION LIVE"
-    },
-    "snapshot": {
-      "platformName": "AEROSAR",
-      "missionName": "Operation Northstar",
-      "missionId": "OP-NSTAR-042",
-      "missionLocation": "Kullu Valley / Sector 07",
-      "missionPhase": "SEARCH IN PROGRESS",
-      "missionTimerSeconds": 7428,
-      "droneId": "DR-01",
-      "mapSectors": [
-        {
-          "label": "SECTOR A",
-          "className": "zone-a"
-        },
-        {
-          "label": "SECTOR B",
-          "className": "zone-b"
-        },
-        {
-          "label": "SECTOR C",
-          "className": "zone-c"
-        }
-      ],
-      "droneStatus": "IN FLIGHT",
-      "connectionStatus": "CONNECTED",
-      "aiStatus": "PROCESSING",
-      "operatorName": "Lokeshjhuria7",
-      "operatorInitials": "LO",
-      "mapMode": "LIVE FEED",
-      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
-      "droneModel": "MAV-X4",
-      "battery": "68%",
-      "batteryTime": "24 MIN REMAINING",
-      "altitude": "142 M",
-      "speed": "18.4 KM/H",
-      "temperature": "16°C",
-      "weather": "CLEAR",
-      "flightTime": "01:18:42",
-      "gpsStatus": "3D FIX",
-      "heading": "NNE 024°",
-      "lastInference": "UPDATED 12 SEC AGO",
-      "lastSync": "12 SEC AGO",
-      "dataSource": "SUPABASE / STATION LIVE",
-      "lastSyncFooter": "12 SEC AGO",
-      "detections": [
-        {
-          "type": "PERSON",
-          "confidence": "94%",
-          "location": "Sector B / 240 m",
-          "time": "12 sec ago",
-          "priority": "HIGH",
-          "icon": "●"
-        },
-        {
-          "type": "THERMAL ANOMALY",
-          "confidence": "81%",
-          "location": "Sector A / 518 m",
-          "time": "48 sec ago",
-          "priority": "REVIEW",
-          "icon": "◉"
-        },
-        {
-          "type": "VEHICLE",
-          "confidence": "76%",
-          "location": "Sector C / 102 m",
-          "time": "2 min ago",
-          "priority": "LOW",
-          "icon": "□"
-        }
-      ],
-      "tasks": [
-        {
-          "title": "Review person detection",
-          "detail": "Sector B / confidence 94%",
-          "status": "URGENT",
-          "icon": "!"
-        },
-        {
-          "title": "Dispatch ground team",
-          "detail": "Waypoint B-04 ready",
-          "status": "READY",
-          "icon": "↗"
-        },
-        {
-          "title": "Confirm thermal anomaly",
-          "detail": "Sector A / confidence 81%",
-          "status": "PENDING",
-          "icon": "?"
-        }
-      ],
-      "operatorEmail": "lokeshjhuria7@gmail.com"
-    }
-  },
-  {
-    "id": "abe4a279-2a69-45a0-ba5f-8ece970a294c",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "mission_snapshot",
-    "timestamp": "2026-09-08T09:09:16.620Z",
-    "details": {
-      "missionPhase": "SEARCH IN PROGRESS",
-      "dataSource": "SUPABASE / STATION LIVE"
-    },
-    "snapshot": {
-      "platformName": "AEROSAR",
-      "missionName": "Operation Northstar",
-      "missionId": "OP-NSTAR-042",
-      "missionLocation": "Kullu Valley / Sector 07",
-      "missionPhase": "SEARCH IN PROGRESS",
-      "missionTimerSeconds": 7428,
-      "droneId": "DR-01",
-      "mapSectors": [
-        {
-          "label": "SECTOR A",
-          "className": "zone-a"
-        },
-        {
-          "label": "SECTOR B",
-          "className": "zone-b"
-        },
-        {
-          "label": "SECTOR C",
-          "className": "zone-c"
-        }
-      ],
-      "droneStatus": "IN FLIGHT",
-      "connectionStatus": "CONNECTED",
-      "aiStatus": "PROCESSING",
-      "operatorName": "Lokeshjhuria7",
-      "operatorInitials": "LO",
-      "mapMode": "LIVE FEED",
-      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
-      "droneModel": "MAV-X4",
-      "battery": "68%",
-      "batteryTime": "24 MIN REMAINING",
-      "altitude": "142 M",
-      "speed": "18.4 KM/H",
-      "temperature": "16°C",
-      "weather": "CLEAR",
-      "flightTime": "01:18:42",
-      "gpsStatus": "3D FIX",
-      "heading": "NNE 024°",
-      "lastInference": "UPDATED 12 SEC AGO",
-      "lastSync": "12 SEC AGO",
-      "dataSource": "SUPABASE / STATION LIVE",
-      "lastSyncFooter": "12 SEC AGO",
-      "detections": [
-        {
-          "type": "PERSON",
-          "confidence": "94%",
-          "location": "Sector B / 240 m",
-          "time": "12 sec ago",
-          "priority": "HIGH",
-          "icon": "●"
-        },
-        {
-          "type": "THERMAL ANOMALY",
-          "confidence": "81%",
-          "location": "Sector A / 518 m",
-          "time": "48 sec ago",
-          "priority": "REVIEW",
-          "icon": "◉"
-        },
-        {
-          "type": "VEHICLE",
-          "confidence": "76%",
-          "location": "Sector C / 102 m",
-          "time": "2 min ago",
-          "priority": "LOW",
-          "icon": "□"
-        }
-      ],
-      "tasks": [
-        {
-          "title": "Review person detection",
-          "detail": "Sector B / confidence 94%",
-          "status": "URGENT",
-          "icon": "!"
-        },
-        {
-          "title": "Dispatch ground team",
-          "detail": "Waypoint B-04 ready",
-          "status": "READY",
-          "icon": "↗"
-        },
-        {
-          "title": "Confirm thermal anomaly",
-          "detail": "Sector A / confidence 81%",
-          "status": "PENDING",
-          "icon": "?"
-        }
-      ],
-      "operatorEmail": "lokeshjhuria7@gmail.com"
-    }
-  },
-  {
-    "id": "09a2cc60-9f3a-4aef-a3e5-0d302c00afcd",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "mission_snapshot",
-    "timestamp": "2026-09-08T09:09:26.649Z",
-    "details": {
-      "missionPhase": "SEARCH IN PROGRESS",
-      "dataSource": "SUPABASE / STATION LIVE"
-    },
-    "snapshot": {
-      "platformName": "AEROSAR",
-      "missionName": "Operation Northstar",
-      "missionId": "OP-NSTAR-042",
-      "missionLocation": "Kullu Valley / Sector 07",
-      "missionPhase": "SEARCH IN PROGRESS",
-      "missionTimerSeconds": 7428,
-      "droneId": "DR-01",
-      "mapSectors": [
-        {
-          "label": "SECTOR A",
-          "className": "zone-a"
-        },
-        {
-          "label": "SECTOR B",
-          "className": "zone-b"
-        },
-        {
-          "label": "SECTOR C",
-          "className": "zone-c"
-        }
-      ],
-      "droneStatus": "IN FLIGHT",
-      "connectionStatus": "CONNECTED",
-      "aiStatus": "PROCESSING",
-      "operatorName": "Lokeshjhuria7",
-      "operatorInitials": "LO",
-      "mapMode": "LIVE FEED",
-      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
-      "droneModel": "MAV-X4",
-      "battery": "68%",
-      "batteryTime": "24 MIN REMAINING",
-      "altitude": "142 M",
-      "speed": "18.4 KM/H",
-      "temperature": "16°C",
-      "weather": "CLEAR",
-      "flightTime": "01:18:42",
-      "gpsStatus": "3D FIX",
-      "heading": "NNE 024°",
-      "lastInference": "UPDATED 12 SEC AGO",
-      "lastSync": "12 SEC AGO",
-      "dataSource": "SUPABASE / STATION LIVE",
-      "lastSyncFooter": "12 SEC AGO",
-      "detections": [
-        {
-          "type": "PERSON",
-          "confidence": "94%",
-          "location": "Sector B / 240 m",
-          "time": "12 sec ago",
-          "priority": "HIGH",
-          "icon": "●"
-        },
-        {
-          "type": "THERMAL ANOMALY",
-          "confidence": "81%",
-          "location": "Sector A / 518 m",
-          "time": "48 sec ago",
-          "priority": "REVIEW",
-          "icon": "◉"
-        },
-        {
-          "type": "VEHICLE",
-          "confidence": "76%",
-          "location": "Sector C / 102 m",
-          "time": "2 min ago",
-          "priority": "LOW",
-          "icon": "□"
-        }
-      ],
-      "tasks": [
-        {
-          "title": "Review person detection",
-          "detail": "Sector B / confidence 94%",
-          "status": "URGENT",
-          "icon": "!"
-        },
-        {
-          "title": "Dispatch ground team",
-          "detail": "Waypoint B-04 ready",
-          "status": "READY",
-          "icon": "↗"
-        },
-        {
-          "title": "Confirm thermal anomaly",
-          "detail": "Sector A / confidence 81%",
-          "status": "PENDING",
-          "icon": "?"
-        }
-      ],
-      "operatorEmail": "lokeshjhuria7@gmail.com"
-    }
-  },
-  {
-    "id": "4025252e-eb40-4d04-aec3-34420a3a1e02",
-    "missionId": "OP-NSTAR-042",
-    "missionName": "Operation Northstar",
-    "eventType": "mission_snapshot",
-    "timestamp": "2026-09-08T09:09:36.793Z",
-    "details": {
-      "missionPhase": "SEARCH IN PROGRESS",
-      "dataSource": "SUPABASE / STATION LIVE"
-    },
-    "snapshot": {
-      "platformName": "AEROSAR",
-      "missionName": "Operation Northstar",
-      "missionId": "OP-NSTAR-042",
-      "missionLocation": "Kullu Valley / Sector 07",
-      "missionPhase": "SEARCH IN PROGRESS",
-      "missionTimerSeconds": 7428,
-      "droneId": "DR-01",
-      "mapSectors": [
-        {
-          "label": "SECTOR A",
-          "className": "zone-a"
-        },
-        {
-          "label": "SECTOR B",
-          "className": "zone-b"
-        },
-        {
-          "label": "SECTOR C",
-          "className": "zone-c"
-        }
-      ],
-      "droneStatus": "IN FLIGHT",
-      "connectionStatus": "CONNECTED",
-      "aiStatus": "PROCESSING",
-      "operatorName": "Lokeshjhuria7",
-      "operatorInitials": "LO",
-      "mapMode": "LIVE FEED",
-      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
-      "droneModel": "MAV-X4",
-      "battery": "68%",
-      "batteryTime": "24 MIN REMAINING",
-      "altitude": "142 M",
-      "speed": "18.4 KM/H",
-      "temperature": "16°C",
-      "weather": "CLEAR",
-      "flightTime": "01:18:42",
-      "gpsStatus": "3D FIX",
-      "heading": "NNE 024°",
-      "lastInference": "UPDATED 12 SEC AGO",
-      "lastSync": "12 SEC AGO",
-      "dataSource": "SUPABASE / STATION LIVE",
-      "lastSyncFooter": "12 SEC AGO",
-      "detections": [
-        {
-          "type": "PERSON",
-          "confidence": "94%",
-          "location": "Sector B / 240 m",
-          "time": "12 sec ago",
-          "priority": "HIGH",
-          "icon": "●"
-        },
-        {
-          "type": "THERMAL ANOMALY",
-          "confidence": "81%",
-          "location": "Sector A / 518 m",
-          "time": "48 sec ago",
-          "priority": "REVIEW",
-          "icon": "◉"
-        },
-        {
-          "type": "VEHICLE",
-          "confidence": "76%",
-          "location": "Sector C / 102 m",
-          "time": "2 min ago",
-          "priority": "LOW",
-          "icon": "□"
-        }
-      ],
-      "tasks": [
-        {
-          "title": "Review person detection",
-          "detail": "Sector B / confidence 94%",
-          "status": "URGENT",
-          "icon": "!"
-        },
-        {
-          "title": "Dispatch ground team",
-          "detail": "Waypoint B-04 ready",
-          "status": "READY",
-          "icon": "↗"
-        },
-        {
-          "title": "Confirm thermal anomaly",
-          "detail": "Sector A / confidence 81%",
-          "status": "PENDING",
-          "icon": "?"
-        }
-      ],
-      "operatorEmail": "lokeshjhuria7@gmail.com"
-    }
-  },
-  {
     "id": "3525bab9-56fc-4dc3-b2bf-f62a377e778c",
     "missionId": "OP-NSTAR-042",
     "missionName": "Operation Northstar",
@@ -20473,6 +19657,814 @@
         }
       ],
       "dispatchActions": [
+        {
+          "title": "Review person detection",
+          "detail": "Sector B / confidence 94%",
+          "status": "URGENT",
+          "icon": "!"
+        },
+        {
+          "title": "Dispatch ground team",
+          "detail": "Waypoint B-04 ready",
+          "status": "READY",
+          "icon": "↗"
+        },
+        {
+          "title": "Confirm thermal anomaly",
+          "detail": "Sector A / confidence 81%",
+          "status": "PENDING",
+          "icon": "?"
+        }
+      ]
+    }
+  },
+  {
+    "id": "a353624b-230a-4644-967d-6e8c946d6b88",
+    "missionId": "OP-NSTAR-042",
+    "missionName": "Operation Northstar",
+    "eventType": "mission_snapshot",
+    "timestamp": "2026-09-13T19:48:40.356Z",
+    "details": {
+      "missionPhase": "SEARCH IN PROGRESS",
+      "dataSource": "DEMO ENGINE"
+    },
+    "snapshot": {
+      "platformName": "AEROSAR",
+      "missionName": "Operation Northstar",
+      "missionId": "OP-NSTAR-042",
+      "missionLocation": "Kullu Valley / Sector 07",
+      "missionPhase": "SEARCH IN PROGRESS",
+      "missionTimerSeconds": 7428,
+      "droneId": "DR-01",
+      "mapSectors": [
+        {
+          "label": "SECTOR A",
+          "className": "zone-a"
+        },
+        {
+          "label": "SECTOR B",
+          "className": "zone-b"
+        },
+        {
+          "label": "SECTOR C",
+          "className": "zone-c"
+        }
+      ],
+      "droneStatus": "IN FLIGHT",
+      "connectionStatus": "CONNECTED",
+      "aiStatus": "PROCESSING",
+      "operatorName": "Maya Chen",
+      "operatorInitials": "MC",
+      "mapMode": "LIVE FEED",
+      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
+      "droneModel": "MAV-X4",
+      "battery": "68%",
+      "batteryTime": "24 MIN REMAINING",
+      "altitude": "142 M",
+      "speed": "18.4 KM/H",
+      "temperature": "16°C",
+      "weather": "CLEAR",
+      "flightTime": "01:18:42",
+      "gpsStatus": "3D FIX",
+      "heading": "NNE 024°",
+      "lastInference": "UPDATED 12 SEC AGO",
+      "lastSync": "12 SEC AGO",
+      "dataSource": "DEMO ENGINE",
+      "lastSyncFooter": "12 SEC AGO",
+      "detections": [
+        {
+          "type": "PERSON",
+          "confidence": "94%",
+          "location": "Sector B / 240 m",
+          "time": "12 sec ago",
+          "priority": "HIGH",
+          "icon": "●"
+        },
+        {
+          "type": "THERMAL ANOMALY",
+          "confidence": "81%",
+          "location": "Sector A / 518 m",
+          "time": "48 sec ago",
+          "priority": "REVIEW",
+          "icon": "◉"
+        },
+        {
+          "type": "VEHICLE",
+          "confidence": "76%",
+          "location": "Sector C / 102 m",
+          "time": "2 min ago",
+          "priority": "LOW",
+          "icon": "□"
+        }
+      ],
+      "tasks": [
+        {
+          "title": "Review person detection",
+          "detail": "Sector B / confidence 94%",
+          "status": "URGENT",
+          "icon": "!"
+        },
+        {
+          "title": "Dispatch ground team",
+          "detail": "Waypoint B-04 ready",
+          "status": "READY",
+          "icon": "↗"
+        },
+        {
+          "title": "Confirm thermal anomaly",
+          "detail": "Sector A / confidence 81%",
+          "status": "PENDING",
+          "icon": "?"
+        }
+      ]
+    }
+  },
+  {
+    "id": "3d40b627-4e98-4c16-89f4-4f55bff7f59f",
+    "missionId": "OP-NSTAR-042",
+    "missionName": "Operation Northstar",
+    "eventType": "mission_snapshot",
+    "timestamp": "2026-09-13T19:49:40.447Z",
+    "details": {
+      "missionPhase": "SEARCH IN PROGRESS",
+      "dataSource": "DEMO ENGINE"
+    },
+    "snapshot": {
+      "platformName": "AEROSAR",
+      "missionName": "Operation Northstar",
+      "missionId": "OP-NSTAR-042",
+      "missionLocation": "Kullu Valley / Sector 07",
+      "missionPhase": "SEARCH IN PROGRESS",
+      "missionTimerSeconds": 7428,
+      "droneId": "DR-01",
+      "mapSectors": [
+        {
+          "label": "SECTOR A",
+          "className": "zone-a"
+        },
+        {
+          "label": "SECTOR B",
+          "className": "zone-b"
+        },
+        {
+          "label": "SECTOR C",
+          "className": "zone-c"
+        }
+      ],
+      "droneStatus": "IN FLIGHT",
+      "connectionStatus": "CONNECTED",
+      "aiStatus": "PROCESSING",
+      "operatorName": "Maya Chen",
+      "operatorInitials": "MC",
+      "mapMode": "LIVE FEED",
+      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
+      "droneModel": "MAV-X4",
+      "battery": "68%",
+      "batteryTime": "24 MIN REMAINING",
+      "altitude": "142 M",
+      "speed": "18.4 KM/H",
+      "temperature": "16°C",
+      "weather": "CLEAR",
+      "flightTime": "01:18:42",
+      "gpsStatus": "3D FIX",
+      "heading": "NNE 024°",
+      "lastInference": "UPDATED 12 SEC AGO",
+      "lastSync": "12 SEC AGO",
+      "dataSource": "DEMO ENGINE",
+      "lastSyncFooter": "12 SEC AGO",
+      "detections": [
+        {
+          "type": "PERSON",
+          "confidence": "94%",
+          "location": "Sector B / 240 m",
+          "time": "12 sec ago",
+          "priority": "HIGH",
+          "icon": "●"
+        },
+        {
+          "type": "THERMAL ANOMALY",
+          "confidence": "81%",
+          "location": "Sector A / 518 m",
+          "time": "48 sec ago",
+          "priority": "REVIEW",
+          "icon": "◉"
+        },
+        {
+          "type": "VEHICLE",
+          "confidence": "76%",
+          "location": "Sector C / 102 m",
+          "time": "2 min ago",
+          "priority": "LOW",
+          "icon": "□"
+        }
+      ],
+      "tasks": [
+        {
+          "title": "Review person detection",
+          "detail": "Sector B / confidence 94%",
+          "status": "URGENT",
+          "icon": "!"
+        },
+        {
+          "title": "Dispatch ground team",
+          "detail": "Waypoint B-04 ready",
+          "status": "READY",
+          "icon": "↗"
+        },
+        {
+          "title": "Confirm thermal anomaly",
+          "detail": "Sector A / confidence 81%",
+          "status": "PENDING",
+          "icon": "?"
+        }
+      ]
+    }
+  },
+  {
+    "id": "6df2b966-d79d-422c-90eb-35808fc96021",
+    "missionId": "OP-NSTAR-042",
+    "missionName": "Operation Northstar",
+    "eventType": "mission_snapshot",
+    "timestamp": "2026-09-13T19:54:38.881Z",
+    "details": {
+      "missionPhase": "SEARCH IN PROGRESS",
+      "dataSource": "DEMO ENGINE"
+    },
+    "snapshot": {
+      "platformName": "AEROSAR",
+      "missionName": "Operation Northstar",
+      "missionId": "OP-NSTAR-042",
+      "missionLocation": "Kullu Valley / Sector 07",
+      "missionPhase": "SEARCH IN PROGRESS",
+      "missionTimerSeconds": 7428,
+      "droneId": "DR-01",
+      "mapSectors": [
+        {
+          "label": "SECTOR A",
+          "className": "zone-a"
+        },
+        {
+          "label": "SECTOR B",
+          "className": "zone-b"
+        },
+        {
+          "label": "SECTOR C",
+          "className": "zone-c"
+        }
+      ],
+      "droneStatus": "IN FLIGHT",
+      "connectionStatus": "CONNECTED",
+      "aiStatus": "PROCESSING",
+      "operatorName": "Maya Chen",
+      "operatorInitials": "MC",
+      "mapMode": "LIVE FEED",
+      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
+      "droneModel": "MAV-X4",
+      "battery": "68%",
+      "batteryTime": "24 MIN REMAINING",
+      "altitude": "142 M",
+      "speed": "18.4 KM/H",
+      "temperature": "16°C",
+      "weather": "CLEAR",
+      "flightTime": "01:18:42",
+      "gpsStatus": "3D FIX",
+      "heading": "NNE 024°",
+      "lastInference": "UPDATED 12 SEC AGO",
+      "lastSync": "12 SEC AGO",
+      "dataSource": "DEMO ENGINE",
+      "lastSyncFooter": "12 SEC AGO",
+      "detections": [
+        {
+          "type": "PERSON",
+          "confidence": "94%",
+          "location": "Sector B / 240 m",
+          "time": "12 sec ago",
+          "priority": "HIGH",
+          "icon": "●"
+        },
+        {
+          "type": "THERMAL ANOMALY",
+          "confidence": "81%",
+          "location": "Sector A / 518 m",
+          "time": "48 sec ago",
+          "priority": "REVIEW",
+          "icon": "◉"
+        },
+        {
+          "type": "VEHICLE",
+          "confidence": "76%",
+          "location": "Sector C / 102 m",
+          "time": "2 min ago",
+          "priority": "LOW",
+          "icon": "□"
+        }
+      ],
+      "tasks": [
+        {
+          "title": "Review person detection",
+          "detail": "Sector B / confidence 94%",
+          "status": "URGENT",
+          "icon": "!"
+        },
+        {
+          "title": "Dispatch ground team",
+          "detail": "Waypoint B-04 ready",
+          "status": "READY",
+          "icon": "↗"
+        },
+        {
+          "title": "Confirm thermal anomaly",
+          "detail": "Sector A / confidence 81%",
+          "status": "PENDING",
+          "icon": "?"
+        }
+      ]
+    }
+  },
+  {
+    "id": "b9d722f5-15ea-48c7-8ea7-7307368a3a94",
+    "missionId": "OP-NSTAR-042",
+    "missionName": "Operation Northstar",
+    "eventType": "mission_snapshot",
+    "timestamp": "2026-09-13T19:54:48.400Z",
+    "details": {
+      "missionPhase": "SEARCH IN PROGRESS",
+      "dataSource": "DEMO ENGINE"
+    },
+    "snapshot": {
+      "platformName": "AEROSAR",
+      "missionName": "Operation Northstar",
+      "missionId": "OP-NSTAR-042",
+      "missionLocation": "Kullu Valley / Sector 07",
+      "missionPhase": "SEARCH IN PROGRESS",
+      "missionTimerSeconds": 7428,
+      "droneId": "DR-01",
+      "mapSectors": [
+        {
+          "label": "SECTOR A",
+          "className": "zone-a"
+        },
+        {
+          "label": "SECTOR B",
+          "className": "zone-b"
+        },
+        {
+          "label": "SECTOR C",
+          "className": "zone-c"
+        }
+      ],
+      "droneStatus": "IN FLIGHT",
+      "connectionStatus": "CONNECTED",
+      "aiStatus": "PROCESSING",
+      "operatorName": "Maya Chen",
+      "operatorInitials": "MC",
+      "mapMode": "LIVE FEED",
+      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
+      "droneModel": "MAV-X4",
+      "battery": "68%",
+      "batteryTime": "24 MIN REMAINING",
+      "altitude": "142 M",
+      "speed": "18.4 KM/H",
+      "temperature": "16°C",
+      "weather": "CLEAR",
+      "flightTime": "01:18:42",
+      "gpsStatus": "3D FIX",
+      "heading": "NNE 024°",
+      "lastInference": "UPDATED 12 SEC AGO",
+      "lastSync": "12 SEC AGO",
+      "dataSource": "DEMO ENGINE",
+      "lastSyncFooter": "12 SEC AGO",
+      "detections": [
+        {
+          "type": "PERSON",
+          "confidence": "94%",
+          "location": "Sector B / 240 m",
+          "time": "12 sec ago",
+          "priority": "HIGH",
+          "icon": "●"
+        },
+        {
+          "type": "THERMAL ANOMALY",
+          "confidence": "81%",
+          "location": "Sector A / 518 m",
+          "time": "48 sec ago",
+          "priority": "REVIEW",
+          "icon": "◉"
+        },
+        {
+          "type": "VEHICLE",
+          "confidence": "76%",
+          "location": "Sector C / 102 m",
+          "time": "2 min ago",
+          "priority": "LOW",
+          "icon": "□"
+        }
+      ],
+      "tasks": [
+        {
+          "title": "Review person detection",
+          "detail": "Sector B / confidence 94%",
+          "status": "URGENT",
+          "icon": "!"
+        },
+        {
+          "title": "Dispatch ground team",
+          "detail": "Waypoint B-04 ready",
+          "status": "READY",
+          "icon": "↗"
+        },
+        {
+          "title": "Confirm thermal anomaly",
+          "detail": "Sector A / confidence 81%",
+          "status": "PENDING",
+          "icon": "?"
+        }
+      ]
+    }
+  },
+  {
+    "id": "11a03f4f-0de3-4641-a733-dea9c0a536fe",
+    "missionId": "OP-NSTAR-042",
+    "missionName": "Operation Northstar",
+    "eventType": "mission_snapshot",
+    "timestamp": "2026-09-13T19:54:51.026Z",
+    "details": {
+      "missionPhase": "SEARCH IN PROGRESS",
+      "dataSource": "DEMO ENGINE"
+    },
+    "snapshot": {
+      "platformName": "AEROSAR",
+      "missionName": "Operation Northstar",
+      "missionId": "OP-NSTAR-042",
+      "missionLocation": "Kullu Valley / Sector 07",
+      "missionPhase": "SEARCH IN PROGRESS",
+      "missionTimerSeconds": 7428,
+      "droneId": "DR-01",
+      "mapSectors": [
+        {
+          "label": "SECTOR A",
+          "className": "zone-a"
+        },
+        {
+          "label": "SECTOR B",
+          "className": "zone-b"
+        },
+        {
+          "label": "SECTOR C",
+          "className": "zone-c"
+        }
+      ],
+      "droneStatus": "IN FLIGHT",
+      "connectionStatus": "CONNECTED",
+      "aiStatus": "PROCESSING",
+      "operatorName": "Maya Chen",
+      "operatorInitials": "MC",
+      "mapMode": "LIVE FEED",
+      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
+      "droneModel": "MAV-X4",
+      "battery": "68%",
+      "batteryTime": "24 MIN REMAINING",
+      "altitude": "142 M",
+      "speed": "18.4 KM/H",
+      "temperature": "16°C",
+      "weather": "CLEAR",
+      "flightTime": "01:18:42",
+      "gpsStatus": "3D FIX",
+      "heading": "NNE 024°",
+      "lastInference": "UPDATED 12 SEC AGO",
+      "lastSync": "12 SEC AGO",
+      "dataSource": "DEMO ENGINE",
+      "lastSyncFooter": "12 SEC AGO",
+      "detections": [
+        {
+          "type": "PERSON",
+          "confidence": "94%",
+          "location": "Sector B / 240 m",
+          "time": "12 sec ago",
+          "priority": "HIGH",
+          "icon": "●"
+        },
+        {
+          "type": "THERMAL ANOMALY",
+          "confidence": "81%",
+          "location": "Sector A / 518 m",
+          "time": "48 sec ago",
+          "priority": "REVIEW",
+          "icon": "◉"
+        },
+        {
+          "type": "VEHICLE",
+          "confidence": "76%",
+          "location": "Sector C / 102 m",
+          "time": "2 min ago",
+          "priority": "LOW",
+          "icon": "□"
+        }
+      ],
+      "tasks": [
+        {
+          "title": "Review person detection",
+          "detail": "Sector B / confidence 94%",
+          "status": "URGENT",
+          "icon": "!"
+        },
+        {
+          "title": "Dispatch ground team",
+          "detail": "Waypoint B-04 ready",
+          "status": "READY",
+          "icon": "↗"
+        },
+        {
+          "title": "Confirm thermal anomaly",
+          "detail": "Sector A / confidence 81%",
+          "status": "PENDING",
+          "icon": "?"
+        }
+      ]
+    }
+  },
+  {
+    "id": "0b4f6466-61c2-4b11-993e-ff3a03bf7982",
+    "missionId": "OP-NSTAR-042",
+    "missionName": "Operation Northstar",
+    "eventType": "mission_snapshot",
+    "timestamp": "2026-09-13T19:55:12.234Z",
+    "details": {
+      "missionPhase": "SEARCH IN PROGRESS",
+      "dataSource": "DEMO ENGINE"
+    },
+    "snapshot": {
+      "platformName": "AEROSAR",
+      "missionName": "Operation Northstar",
+      "missionId": "OP-NSTAR-042",
+      "missionLocation": "Kullu Valley / Sector 07",
+      "missionPhase": "SEARCH IN PROGRESS",
+      "missionTimerSeconds": 7428,
+      "droneId": "DR-01",
+      "mapSectors": [
+        {
+          "label": "SECTOR A",
+          "className": "zone-a"
+        },
+        {
+          "label": "SECTOR B",
+          "className": "zone-b"
+        },
+        {
+          "label": "SECTOR C",
+          "className": "zone-c"
+        }
+      ],
+      "droneStatus": "IN FLIGHT",
+      "connectionStatus": "CONNECTED",
+      "aiStatus": "PROCESSING",
+      "operatorName": "Maya Chen",
+      "operatorInitials": "MC",
+      "mapMode": "LIVE FEED",
+      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
+      "droneModel": "MAV-X4",
+      "battery": "68%",
+      "batteryTime": "24 MIN REMAINING",
+      "altitude": "142 M",
+      "speed": "18.4 KM/H",
+      "temperature": "16°C",
+      "weather": "CLEAR",
+      "flightTime": "01:18:42",
+      "gpsStatus": "3D FIX",
+      "heading": "NNE 024°",
+      "lastInference": "UPDATED 12 SEC AGO",
+      "lastSync": "12 SEC AGO",
+      "dataSource": "DEMO ENGINE",
+      "lastSyncFooter": "12 SEC AGO",
+      "detections": [
+        {
+          "type": "PERSON",
+          "confidence": "94%",
+          "location": "Sector B / 240 m",
+          "time": "12 sec ago",
+          "priority": "HIGH",
+          "icon": "●"
+        },
+        {
+          "type": "THERMAL ANOMALY",
+          "confidence": "81%",
+          "location": "Sector A / 518 m",
+          "time": "48 sec ago",
+          "priority": "REVIEW",
+          "icon": "◉"
+        },
+        {
+          "type": "VEHICLE",
+          "confidence": "76%",
+          "location": "Sector C / 102 m",
+          "time": "2 min ago",
+          "priority": "LOW",
+          "icon": "□"
+        }
+      ],
+      "tasks": [
+        {
+          "title": "Review person detection",
+          "detail": "Sector B / confidence 94%",
+          "status": "URGENT",
+          "icon": "!"
+        },
+        {
+          "title": "Dispatch ground team",
+          "detail": "Waypoint B-04 ready",
+          "status": "READY",
+          "icon": "↗"
+        },
+        {
+          "title": "Confirm thermal anomaly",
+          "detail": "Sector A / confidence 81%",
+          "status": "PENDING",
+          "icon": "?"
+        }
+      ]
+    }
+  },
+  {
+    "id": "15461b9e-758c-466f-bf90-f2c7b62c1f5c",
+    "missionId": "OP-NSTAR-042",
+    "missionName": "Operation Northstar",
+    "eventType": "mission_snapshot",
+    "timestamp": "2026-09-13T19:56:15.155Z",
+    "details": {
+      "missionPhase": "SEARCH IN PROGRESS",
+      "dataSource": "DEMO ENGINE"
+    },
+    "snapshot": {
+      "platformName": "AEROSAR",
+      "missionName": "Operation Northstar",
+      "missionId": "OP-NSTAR-042",
+      "missionLocation": "Kullu Valley / Sector 07",
+      "missionPhase": "SEARCH IN PROGRESS",
+      "missionTimerSeconds": 7428,
+      "droneId": "DR-01",
+      "mapSectors": [
+        {
+          "label": "SECTOR A",
+          "className": "zone-a"
+        },
+        {
+          "label": "SECTOR B",
+          "className": "zone-b"
+        },
+        {
+          "label": "SECTOR C",
+          "className": "zone-c"
+        }
+      ],
+      "droneStatus": "IN FLIGHT",
+      "connectionStatus": "CONNECTED",
+      "aiStatus": "PROCESSING",
+      "operatorName": "Maya Chen",
+      "operatorInitials": "MC",
+      "mapMode": "LIVE FEED",
+      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
+      "droneModel": "MAV-X4",
+      "battery": "68%",
+      "batteryTime": "24 MIN REMAINING",
+      "altitude": "142 M",
+      "speed": "18.4 KM/H",
+      "temperature": "16°C",
+      "weather": "CLEAR",
+      "flightTime": "01:18:42",
+      "gpsStatus": "3D FIX",
+      "heading": "NNE 024°",
+      "lastInference": "UPDATED 12 SEC AGO",
+      "lastSync": "12 SEC AGO",
+      "dataSource": "DEMO ENGINE",
+      "lastSyncFooter": "12 SEC AGO",
+      "detections": [
+        {
+          "type": "PERSON",
+          "confidence": "94%",
+          "location": "Sector B / 240 m",
+          "time": "12 sec ago",
+          "priority": "HIGH",
+          "icon": "●"
+        },
+        {
+          "type": "THERMAL ANOMALY",
+          "confidence": "81%",
+          "location": "Sector A / 518 m",
+          "time": "48 sec ago",
+          "priority": "REVIEW",
+          "icon": "◉"
+        },
+        {
+          "type": "VEHICLE",
+          "confidence": "76%",
+          "location": "Sector C / 102 m",
+          "time": "2 min ago",
+          "priority": "LOW",
+          "icon": "□"
+        }
+      ],
+      "tasks": [
+        {
+          "title": "Review person detection",
+          "detail": "Sector B / confidence 94%",
+          "status": "URGENT",
+          "icon": "!"
+        },
+        {
+          "title": "Dispatch ground team",
+          "detail": "Waypoint B-04 ready",
+          "status": "READY",
+          "icon": "↗"
+        },
+        {
+          "title": "Confirm thermal anomaly",
+          "detail": "Sector A / confidence 81%",
+          "status": "PENDING",
+          "icon": "?"
+        }
+      ]
+    }
+  },
+  {
+    "id": "7e442660-df07-4506-91ca-3deb2f20c022",
+    "missionId": "OP-NSTAR-042",
+    "missionName": "Operation Northstar",
+    "eventType": "mission_snapshot",
+    "timestamp": "2026-09-13T19:56:36.608Z",
+    "details": {
+      "missionPhase": "SEARCH IN PROGRESS",
+      "dataSource": "DEMO ENGINE"
+    },
+    "snapshot": {
+      "platformName": "AEROSAR",
+      "missionName": "Operation Northstar",
+      "missionId": "OP-NSTAR-042",
+      "missionLocation": "Kullu Valley / Sector 07",
+      "missionPhase": "SEARCH IN PROGRESS",
+      "missionTimerSeconds": 7428,
+      "droneId": "DR-01",
+      "mapSectors": [
+        {
+          "label": "SECTOR A",
+          "className": "zone-a"
+        },
+        {
+          "label": "SECTOR B",
+          "className": "zone-b"
+        },
+        {
+          "label": "SECTOR C",
+          "className": "zone-c"
+        }
+      ],
+      "droneStatus": "IN FLIGHT",
+      "connectionStatus": "CONNECTED",
+      "aiStatus": "PROCESSING",
+      "operatorName": "Maya Chen",
+      "operatorInitials": "MC",
+      "mapMode": "LIVE FEED",
+      "coordinates": "32°02'41.8\" N 77°06'12.4\" E",
+      "droneModel": "MAV-X4",
+      "battery": "68%",
+      "batteryTime": "24 MIN REMAINING",
+      "altitude": "142 M",
+      "speed": "18.4 KM/H",
+      "temperature": "16°C",
+      "weather": "CLEAR",
+      "flightTime": "01:18:42",
+      "gpsStatus": "3D FIX",
+      "heading": "NNE 024°",
+      "lastInference": "UPDATED 12 SEC AGO",
+      "lastSync": "12 SEC AGO",
+      "dataSource": "DEMO ENGINE",
+      "lastSyncFooter": "12 SEC AGO",
+      "detections": [
+        {
+          "type": "PERSON",
+          "confidence": "94%",
+          "location": "Sector B / 240 m",
+          "time": "12 sec ago",
+          "priority": "HIGH",
+          "icon": "●"
+        },
+        {
+          "type": "THERMAL ANOMALY",
+          "confidence": "81%",
+          "location": "Sector A / 518 m",
+          "time": "48 sec ago",
+          "priority": "REVIEW",
+          "icon": "◉"
+        },
+        {
+          "type": "VEHICLE",
+          "confidence": "76%",
+          "location": "Sector C / 102 m",
+          "time": "2 min ago",
+          "priority": "LOW",
+          "icon": "□"
+        }
+      ],
+      "tasks": [
         {
           "title": "Review person detection",
           "detail": "Sector B / confidence 94%",
