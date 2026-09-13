@@ -1,7 +1,8 @@
 {
+  "version": 2,
   "functions": {
-    "server.js": {
-      "includeFiles": "*.{html,css,js,json,png,jpg,svg}"
+    "api/**/*.js": {
+      "includeFiles": ["*.html", "*.css", "*.js", "*.json", "*.png", "*.jpg", "*.svg"]
     }
   }
 }
