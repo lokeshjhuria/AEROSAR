@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "mkdir -p dist && cp *.html *.css *.js *.json dist/",
+  "outputDirectory": "dist",
   "functions": {
     "api/**/*.js": {
       "includeFiles": "*.{html,css,js,json,png,jpg,svg}"
