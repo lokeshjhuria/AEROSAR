@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "api/**/*.js": {
-      "includeFiles": ["*.html", "*.css", "*.js", "*.json", "*.png", "*.jpg", "*.svg"]
+      "includeFiles": "*.{html,css,js,json,png,jpg,svg}"
     }
   }
 }
